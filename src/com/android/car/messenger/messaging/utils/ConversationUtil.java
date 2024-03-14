@@ -20,8 +20,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.common.Conversation.Message;
 import com.android.car.messenger.common.Conversation.Message.MessageType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Conversation Util class for the {@link Conversation} DAO.
@@ -32,6 +34,31 @@ public class ConversationUtil {
     private ConversationUtil() {}
 
     /**
+     * Returns a summary of the given conversation.
+     *
+     * The contents of the conversation will be in the following priority:
+     * 1. Unread received messages. If none, then
+     * 2. Read received messages up to the readLimit param.
+     */
+    public static Conversation summarizeConversation(Conversation conversation, int readLimit) {
+        // messages are ordered by timestamp asc
+        List<Conversation.Message> summarizedMessages = new ArrayList<>();
+        List<Conversation.Message> messages = conversation.getMessages();
+
+        readLimit = Math.min(readLimit, messages.size());
+        int startIndex = conversation.getUnreadCount() > 0
+                ? messages.size() - conversation.getUnreadCount()
+                : messages.size() - readLimit;
+        for (int i = startIndex; i < messages.size(); i++) {
+            summarizedMessages.add(messages.get(i));
+        }
+
+        Conversation.Builder builder = conversation.toBuilder();
+        builder.setMessages(summarizedMessages);
+        return builder.build();
+    }
+
+    /**
      * Get the last timestamp for the conversation. This could be a reply timestamp or last received
      * message timestamp, whichever is last.
      */
@@ -39,7 +66,7 @@ public class ConversationUtil {
         if (conversation == null) {
             return 0L;
         }
-        Message msg = getLastMessage(conversation);
+        Conversation.Message msg = getLastMessage(conversation);
         if (msg == null) {
             return 0L;
         }
@@ -51,7 +78,7 @@ public class ConversationUtil {
         if (conversation == null) {
             return false;
         }
-        Message msg = getLastMessage(conversation);
+        Conversation.Message msg = getLastMessage(conversation);
         if (msg == null) {
             return false;
         }
@@ -61,7 +88,7 @@ public class ConversationUtil {
     /** Returns the last message in the conversation, or null if {@link
      * Conversation#getMessages} is empty */
     @Nullable
-    public static Message getLastMessage(@Nullable Conversation conversation) {
+    public static Conversation.Message getLastMessage(@Nullable Conversation conversation) {
         if (conversation == null || conversation.getMessages().isEmpty()) {
             return null;
         }
@@ -75,7 +102,7 @@ public class ConversationUtil {
      */
     @NonNull
     public static String getLastMessagePreview(@Nullable Conversation conversation) {
-        Message lastMessage = getLastMessage(conversation);
+        Conversation.Message lastMessage = getLastMessage(conversation);
         if (lastMessage == null) {
             return "";
         }

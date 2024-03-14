@@ -56,6 +56,7 @@ import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.common.Conversation.ConversationAction;
 import com.android.car.messenger.common.Conversation.ConversationAction.ActionType;
 import com.android.car.messenger.interfaces.AppFactory;
+import com.android.car.messenger.messaging.utils.ConversationUtil;
 import com.android.car.messenger.services.MessengerService;
 import com.android.car.messenger.services.NotificationHandler;
 
@@ -110,8 +111,9 @@ public class VoiceUtil {
             @NonNull String conversationAction,
             @NonNull String notificationAction) {
         Bundle args = new Bundle();
-        Conversation tapToReadConversation =
-                createTapToReadConversation(conversation, userAccount.getId());
+        int readLimit = activity.getResources().getInteger(R.integer.max_read_messages_to_read);
+        Conversation tapToReadConversation = ConversationUtil.summarizeConversation(
+                createTapToReadConversation(conversation, userAccount.getId()), readLimit);
         boolean isConversationSupported =
                 activity.getResources().getBoolean(R.bool.ttr_conversation_supported);
         if (isConversationSupported) {

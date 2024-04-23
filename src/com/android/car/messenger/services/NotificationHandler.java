@@ -79,9 +79,16 @@ public class NotificationHandler {
                 conversation.isMuted()
                         ? MessengerService.SILENT_MESSAGE_CHANNEL_ID
                         : MessengerService.MESSAGE_CHANNEL_ID;
+        boolean directReplySupported =
+                context.getResources().getBoolean(R.bool.direct_reply_supported);
         Notification notification =
                 ConversationPayloadHandler.createNotificationFromConversation(
-                        context, channelId, tapToReadConversation, R.drawable.ic_message, null);
+                        context,
+                        channelId,
+                        tapToReadConversation,
+                        R.drawable.ic_message,
+                        null,
+                        directReplySupported);
         notification.contentIntent = createContentIntent();
         notificationManager.notify(tapToReadConversation.getId().hashCode(), notification);
     }
@@ -171,6 +178,8 @@ public class NotificationHandler {
         // cancel any other notifications within group.
         // There should be only notification in group at a time.
         cancelAllTapToReadNotifications(context);
+        boolean directReplySupported =
+                context.getResources().getBoolean(R.bool.direct_reply_supported);
         // Post as a foreground service:
         // Foreground notifications by system apps with low priority
         // are hidden from user view, which is desired
@@ -180,7 +189,8 @@ public class NotificationHandler {
                         MessengerService.APP_RUNNING_CHANNEL_ID,
                         tapToReadConversation,
                         context.getApplicationInfo().icon,
-                        GROUP_TAP_TO_READ_NOTIFICATION);
+                        GROUP_TAP_TO_READ_NOTIFICATION,
+                        directReplySupported);
         int id = (GROUP_TAP_TO_READ_NOTIFICATION + tapToReadConversation.getId()).hashCode();
         NotificationManager notificationManager =
                 context.getSystemService(NotificationManager.class);

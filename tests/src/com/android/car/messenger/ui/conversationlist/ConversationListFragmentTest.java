@@ -122,15 +122,15 @@ public class ConversationListFragmentTest {
                 id,
                 title,
                 preview,
-                mock(Drawable.class),
+                /* subtitleIcon=*/ mock(Drawable.class),
                 unreadCount,
                 timestamp,
-                null,
-                true,
-                true,
-                true,
-                true,
-                false,
+                /* avatar=*/ null,
+                /* showMuteIcon=*/ true,
+                /* showReplyIcon=*/ true,
+                /* showPlayIcon=*/ true,
+                /* mUseUnreadTheme= */ true,
+                /* isMuted= */ false,
                 mock(Conversation.class));
         conversations.add(item);
 
@@ -145,6 +145,46 @@ public class ConversationListFragmentTest {
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
         onView(withId(R.id.reply_action_button))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
+        onView(withId(R.id.play_action_button))
+                .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
+    }
+
+    @Test
+    public void testOnViewCreated_hide_reply_button() {
+        String id = "id";
+        String title = "title";
+        String preview = "preview";
+        String unreadCount = "5";
+        long timestamp = 1000;
+
+        List<UIConversationItem> conversations = new ArrayList<>();
+        UIConversationItem item = new UIConversationItem(
+                id,
+                title,
+                preview,
+                /* subtitleIcon=*/ mock(Drawable.class),
+                unreadCount,
+                timestamp,
+                /* avatar=*/ null,
+                /* showMuteIcon=*/ true,
+                /* showReplyIcon=*/ false,
+                /* showPlayIcon=*/ true,
+                /* mUseUnreadTheme= */ true,
+                /* isMuted= */ false,
+                mock(Conversation.class));
+        conversations.add(item);
+
+        startFragment(mMockUserAccount, conversations, BluetoothState.ENABLED);
+
+        onView(withId(R.id.list_view))
+                .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
+        onView(withId(R.id.title)).check(matches(withText(title)));
+        onView(withId(R.id.unread_badge)).check(matches(withText(unreadCount)));
+        onView(withId(R.id.preview)).check(matches(withText(preview)));
+        onView(withId(R.id.mute_action_button))
+                .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
+        onView(withId(R.id.reply_action_button))
+                .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.GONE)));
         onView(withId(R.id.play_action_button))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
     }

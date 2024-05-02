@@ -62,6 +62,12 @@ public class NotificationHandler {
 
     /** Posts or updates a notification based on a conversation */
     public static void postNotification(Conversation conversation) {
+        if (conversation.isMuted()) {
+            L.d(TAG, "Conversation %s is muted, skipping notification post", conversation.getId());
+            return;
+        }
+
+        Context context = AppFactory.get().getContext();
         int userAccountId = conversation.getExtras().getInt(MessageConstants.EXTRA_ACCOUNT_ID, 0);
         if (userAccountId == 0) {
             L.w(TAG,
@@ -71,24 +77,23 @@ public class NotificationHandler {
         L.d(TAG, "posting notification with id: " + conversation.getId());
         Conversation tapToReadConversation =
                 VoiceUtil.createTapToReadConversation(conversation, userAccountId);
-        Context context = AppFactory.get().getContext();
+
         NotificationManager notificationManager =
                 context.getSystemService(NotificationManager.class);
 
-        String channelId =
-                conversation.isMuted()
-                        ? MessengerService.SILENT_MESSAGE_CHANNEL_ID
-                        : MessengerService.MESSAGE_CHANNEL_ID;
         boolean directReplySupported =
                 context.getResources().getBoolean(R.bool.direct_reply_supported);
+        boolean muteSupported =
+                context.getResources().getBoolean(R.bool.in_app_mute_supported);
         Notification notification =
                 ConversationPayloadHandler.createNotificationFromConversation(
                         context,
-                        channelId,
+                        MessengerService.MESSAGE_CHANNEL_ID,
                         tapToReadConversation,
                         R.drawable.ic_message,
-                        null,
-                        directReplySupported);
+                        /* group= */ null,
+                        directReplySupported,
+                        muteSupported);
         notification.contentIntent = createContentIntent();
         notificationManager.notify(tapToReadConversation.getId().hashCode(), notification);
     }
@@ -180,6 +185,8 @@ public class NotificationHandler {
         cancelAllTapToReadNotifications(context);
         boolean directReplySupported =
                 context.getResources().getBoolean(R.bool.direct_reply_supported);
+        boolean muteSupported =
+                context.getResources().getBoolean(R.bool.in_app_mute_supported);
         // Post as a foreground service:
         // Foreground notifications by system apps with low priority
         // are hidden from user view, which is desired
@@ -190,7 +197,8 @@ public class NotificationHandler {
                         tapToReadConversation,
                         context.getApplicationInfo().icon,
                         GROUP_TAP_TO_READ_NOTIFICATION,
-                        directReplySupported);
+                        directReplySupported,
+                        muteSupported);
         int id = (GROUP_TAP_TO_READ_NOTIFICATION + tapToReadConversation.getId()).hashCode();
         NotificationManager notificationManager =
                 context.getSystemService(NotificationManager.class);

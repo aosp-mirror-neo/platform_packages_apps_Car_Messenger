@@ -48,8 +48,9 @@
     <dimen name="loading_info_button_margin_top">@dimen/car_ui_padding_2</dimen>
 
     <!-- Dialog and button -->
+    <dimen name="action_button_size">76dp</dimen>
     <dimen name="action_button_corner_radius">20dp</dimen>
-
+    <dimen name="action_button_margin">12dp</dimen>
     <dimen name="conversation_avatar_width">50dp</dimen>
 
     <!-- Letter spacing -->

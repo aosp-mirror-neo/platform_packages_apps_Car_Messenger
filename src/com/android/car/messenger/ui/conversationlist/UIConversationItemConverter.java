@@ -68,6 +68,9 @@ public class UIConversationItemConverter {
         if (unreadCount > maxUnreadCount) {
             unreadCountText = context.getString(R.string.message_overflow, maxUnreadCount);
         }
+
+        boolean showMuteIcon =
+                context.getResources().getBoolean(R.bool.in_app_mute_supported);
         boolean showReplyIcon =
                 context.getResources().getBoolean(R.bool.direct_reply_supported);
 
@@ -80,7 +83,7 @@ public class UIConversationItemConverter {
                 unreadCountText,
                 timestamp,
                 getConversationAvatar(context, conversation),
-                /* showMuteIcon= */ false,
+                showMuteIcon,
                 showReplyIcon,
                 /* showPlayIcon= */ false,
                 isUnread,

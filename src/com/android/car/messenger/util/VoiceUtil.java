@@ -29,6 +29,7 @@ import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_REP
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_SEND_SMS;
 import static com.android.car.messenger.MessageConstants.ACTION_DIRECT_SEND;
 import static com.android.car.messenger.MessageConstants.ACTION_MARK_AS_READ;
+import static com.android.car.messenger.MessageConstants.ACTION_MUTE;
 import static com.android.car.messenger.MessageConstants.ACTION_REPLY;
 import static com.android.car.messenger.MessageConstants.EXTRA_ACCOUNT_ID;
 import static com.android.car.messenger.MessageConstants.EXTRA_CONVERSATION_KEY;
@@ -165,6 +166,20 @@ public class VoiceUtil {
         String conversationKey = conversation.getId();
         Conversation.Builder builder = conversation.toBuilder();
 
+        final int muteIcon = R.drawable.car_ui_icon_toggle_mute;
+        final String muteString = context.getString(R.string.action_reply);
+        PendingIntent muteIntent =
+                createServiceIntent(ACTION_MUTE, conversationKey, userAccountId);
+        ConversationAction muteAction =
+                new ConversationAction(
+                        ActionType.ACTION_TYPE_MUTE,
+                        new RemoteAction(
+                                Icon.createWithResource(context, muteIcon),
+                                muteString,
+                                muteString,
+                                muteIntent),
+                        new RemoteInput.Builder(Intent.EXTRA_TEXT).build());
+
         final int replyIcon = R.drawable.car_ui_icon_reply;
         final String replyString = context.getString(R.string.action_reply);
         PendingIntent replyIntent =
@@ -194,6 +209,7 @@ public class VoiceUtil {
                         null);
 
         List<ConversationAction> actions = new ArrayList<>();
+        actions.add(muteAction);
         actions.add(replyAction);
         actions.add(markAsReadAction);
         builder.setActions(actions);

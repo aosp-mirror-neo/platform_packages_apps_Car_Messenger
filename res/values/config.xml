@@ -18,6 +18,8 @@
     <bool name="group_avatar_fill_background">false</bool>
     <bool name="direct_send_supported">true</bool>
     <bool name="direct_reply_supported">true</bool>
+    <!-- If false, mute behavior will fall on system notifications -->
+    <bool name="in_app_mute_supported">true</bool>
     <bool name="ttr_conversation_supported">true</bool>
     <bool name="filter_local_sim">true</bool>
     <bool name="enable_time_desync_reminder">true</bool>

@@ -18,6 +18,8 @@
     <bool name="group_avatar_fill_background">false</bool>
     <bool name="direct_send_supported">true</bool>
     <bool name="direct_reply_supported">true</bool>
+    <!-- If false, mute behavior will fall on system notifications -->
+    <bool name="in_app_mute_supported">true</bool>
     <bool name="ttr_conversation_supported">true</bool>
     <bool name="filter_local_sim">true</bool>
     <bool name="enable_time_desync_reminder">true</bool>
@@ -25,6 +27,7 @@
     <integer name="time_desync_reminder_interval_mins">120</integer>
     <integer name="max_unread_count">10</integer>
     <integer name="conversation_size_limit">15</integer>
+    <integer name="max_read_messages_to_read">3</integer>
 
     <!--
     A number between 1 and 4 is required.

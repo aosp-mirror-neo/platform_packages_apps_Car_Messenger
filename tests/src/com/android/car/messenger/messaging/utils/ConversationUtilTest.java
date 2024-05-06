@@ -18,6 +18,10 @@ package com.android.car.messenger.messaging.utils;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.mock;
+
+import android.app.RemoteAction;
+
 import androidx.core.app.Person;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -128,5 +132,56 @@ public class ConversationUtilTest {
         boolean isReplied = ConversationUtil.isReplied(conv);
 
         assertThat(isReplied).isEqualTo(true);
+    }
+
+    @Test
+    public void summarizeConversation_hasUnread() {
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(TestUtils.createRecvMessage(
+                "msg", /* timestamp= */ 0, mPerson, /* isRead= */ false));
+        messages.add(TestUtils.createRecvMessage(
+                "msg2", /* timestamp= */ 1, mPerson, /* isRead= */ false));
+
+        ArrayList<Conversation.ConversationAction> actions = new ArrayList<>();
+        actions.add(new Conversation.ConversationAction(
+                Conversation.ConversationAction.ActionType.ACTION_TYPE_MUTE,
+                mock(RemoteAction.class),
+                null));
+        Conversation conv = new Conversation.Builder(mPerson, CONV_ID)
+                .setMessages(messages)
+                .setActions(actions)
+                .setUnreadCount(2)
+                .build();
+
+        Conversation summarized = ConversationUtil.summarizeConversation(conv, 1);
+        assertThat(summarized.getMessages()).hasSize(2);
+        assertThat(summarized.getMessages()).isEqualTo(messages);
+        assertThat(summarized.getActions()).isEqualTo(actions);
+    }
+
+    @Test
+    public void summarizeConversation_allRead() {
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(TestUtils.createRecvMessage(
+                "msg", /* timestamp= */ 0, mPerson, /* isRead= */ true));
+        messages.add(TestUtils.createRecvMessage(
+                "msg2", /* timestamp= */ 1, mPerson, /* isRead= */ true));
+
+        ArrayList<Conversation.ConversationAction> actions = new ArrayList<>();
+        actions.add(new Conversation.ConversationAction(
+                Conversation.ConversationAction.ActionType.ACTION_TYPE_MUTE,
+                mock(RemoteAction.class),
+                null));
+        Conversation conv = new Conversation.Builder(mPerson, CONV_ID)
+                .setMessages(messages)
+                .setActions(actions)
+                .setUnreadCount(0)
+                .build();
+
+        Conversation summarized = ConversationUtil.summarizeConversation(conv, 1);
+        assertThat(summarized.getMessages()).hasSize(1);
+        Message msg = summarized.getMessages().get(0);
+        assertThat(msg).isEqualTo(messages.get(1));
+        assertThat(summarized.getActions()).isEqualTo(actions);
     }
 }

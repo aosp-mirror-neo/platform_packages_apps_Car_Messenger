@@ -54,6 +54,7 @@ public class ContactUtils {
 
     @NonNull private static final String RECIPIENT_SPLIT_SEPARATOR = " ";
     @NonNull public static final String DRIVER_NAME = "Driver";
+    private static final String UNKNOWN = "Unknown";
 
     @NonNull
     private static final String[] PROJECTION =
@@ -85,7 +86,7 @@ public class ContactUtils {
             String number = getCanonicalAddressesFromRecipientIds(context, contactIdLong);
             if (number == null) {
                 L.e(TAG, "No phone number found for contactId: %s", contactId);
-                continue;
+                number = "";
             }
             Person person = getPerson(context, number, processParticipant);
             participants.add(person);
@@ -111,7 +112,7 @@ public class ContactUtils {
             @NonNull Context context,
             @NonNull String phoneNo,
             @Nullable BiConsumer<String, Bitmap> processParticipant) {
-        String name = phoneNo;
+        String name = TextUtils.isEmpty(phoneNo) ? UNKNOWN : phoneNo;
         Bitmap bitmap = null;
         Cursor cursor = null;
         try {
@@ -179,7 +180,7 @@ public class ContactUtils {
                 cursor.close();
             }
         }
-        L.w(TAG, "No canonical address found for recipient id");
+        L.w(TAG, "No canonical address found for recipient id %d", contactId);
         return null;
     }
 }

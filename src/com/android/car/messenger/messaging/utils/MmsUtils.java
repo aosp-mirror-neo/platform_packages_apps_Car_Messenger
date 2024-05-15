@@ -76,15 +76,16 @@ class MmsUtils {
     private static String getMmsBody(@NonNull Context context, @NonNull String id) {
         String uriStr = MessageFormat.format(FORMAT_CONTENT_MMS_PART, id);
         Uri uriAddress = Uri.parse(uriStr);
-        Cursor cursor = CursorUtils.simpleQuery(context, uriAddress);
         StringBuilder stringBuilder = new StringBuilder();
-        while (cursor != null && cursor.moveToNext()) {
-            stringBuilder.append(cursor.getString(cursor.getColumnIndex(Part.TEXT)));
-            if (!cursor.isLast()) {
-                stringBuilder.append(" ");
+
+        try (Cursor cursor = CursorUtils.simpleQuery(context, uriAddress)) {
+            while (cursor != null && cursor.moveToNext()) {
+                stringBuilder.append(cursor.getString(cursor.getColumnIndex(Part.TEXT)));
+                if (!cursor.isLast()) {
+                    stringBuilder.append(" ");
+                }
             }
         }
-
         return stringBuilder.toString().replace(REPLACE_CHARS, "");
     }
 
@@ -92,13 +93,14 @@ class MmsUtils {
     private static String getOriginator(@NonNull Context context, @NonNull String id) {
         String selection =
                 MessageFormat.format(FORMAT_TYPE_AND_MSG_ID, ORIGINATOR_ADDRESS_TYPE, id);
-        String uriStr = MessageFormat.format(FORMAT_CONTENT_MMS_ADDR, id);
-        Cursor cursor = CursorUtils.simpleQueryWithSelection(context, Uri.parse(uriStr), selection);
+        Uri uri = Uri.parse(MessageFormat.format(FORMAT_CONTENT_MMS_ADDR, id));
         String phoneNum = "";
-        if (cursor != null && cursor.moveToFirst()) {
-            cursor.moveToFirst();
-            phoneNum = cursor.getString(cursor.getColumnIndex(Addr.ADDRESS));
-            cursor.close();
+
+        try (Cursor cursor = CursorUtils.simpleQueryWithSelection(context, uri, selection)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                cursor.moveToFirst();
+                phoneNum = cursor.getString(cursor.getColumnIndex(Addr.ADDRESS));
+            }
         }
         return phoneNum;
     }

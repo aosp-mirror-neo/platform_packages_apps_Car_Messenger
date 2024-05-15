@@ -96,11 +96,16 @@ public class ContactUtils {
     }
 
     private static String[] getRecipientIds(@NonNull String conversationId) {
-        Cursor threadCursor = CursorUtils.getThreadCursor(conversationId);
-        threadCursor.moveToFirst();
-        return threadCursor
-                .getString(threadCursor.getColumnIndex(RECIPIENT_IDS))
-                .split(RECIPIENT_SPLIT_SEPARATOR);
+        String[] recipientIds = new String[0];
+        try (Cursor threadCursor = CursorUtils.getThreadCursor(conversationId)) {
+            if (threadCursor != null) {
+                threadCursor.moveToFirst();
+                recipientIds = threadCursor
+                        .getString(threadCursor.getColumnIndex(RECIPIENT_IDS))
+                        .split(RECIPIENT_SPLIT_SEPARATOR);
+            }
+        }
+        return recipientIds;
     }
 
     /**
@@ -164,20 +169,14 @@ public class ContactUtils {
     @Nullable
     private static String getCanonicalAddressesFromRecipientIds(
             @NonNull Context context, long contactId) {
-        Cursor cursor =
-                CursorUtils.simpleQuery(
-                        context,
-                        ContentUris.withAppendedId(SINGLE_CANONICAL_ADDRESS_URI, contactId));
-        if (cursor != null) {
-            try {
-                if (cursor.moveToFirst()) {
-                    String rawNumber = cursor.getString(0);
-                    if (!TextUtils.isEmpty(rawNumber)) {
-                        return rawNumber;
-                    }
+        try (Cursor cursor = CursorUtils.simpleQuery(
+                context,
+                ContentUris.withAppendedId(SINGLE_CANONICAL_ADDRESS_URI, contactId))) {
+            if (cursor != null && cursor.moveToFirst()) {
+                String rawNumber = cursor.getString(0);
+                if (!TextUtils.isEmpty(rawNumber)) {
+                    return rawNumber;
                 }
-            } finally {
-                cursor.close();
             }
         }
         L.w(TAG, "No canonical address found for recipient id %d", contactId);

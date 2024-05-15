@@ -86,18 +86,20 @@ class ConversationListLiveData extends ContentProviderLiveData<Collection<Conver
     @Override
     public void onDataChange() {
         L.d(TAG, "ConversationListLiveData: telephony database changed");
-        Cursor cursor = ConversationsPerDeviceFetchManager.getCursor(mUserAccount.getId());
+
         ArrayList<Conversation> conversations = new ArrayList<>();
-        while (cursor != null && cursor.moveToNext()) {
-            String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
-            Conversation conversation = null;
-            try {
-                conversation = fetchCompleteConversation(conversationId);
-            } catch (CursorIndexOutOfBoundsException e) {
-                L.w(TAG, "Error occurred fetching conversation Id: %s", conversationId);
-            } finally {
-                if (conversation != null) {
-                    conversations.add(conversation);
+        try (Cursor cursor = ConversationsPerDeviceFetchManager.getCursor(mUserAccount.getId())) {
+            while (cursor != null && cursor.moveToNext()) {
+                String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
+                Conversation conversation = null;
+                try {
+                    conversation = fetchCompleteConversation(conversationId);
+                } catch (CursorIndexOutOfBoundsException e) {
+                    L.w(TAG, "Error occurred fetching conversation Id: %s", conversationId);
+                } finally {
+                    if (conversation != null) {
+                        conversations.add(conversation);
+                    }
                 }
             }
         }

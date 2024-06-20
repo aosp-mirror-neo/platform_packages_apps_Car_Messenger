@@ -58,15 +58,17 @@ public class ConversationFetchUtil {
      */
     public static Conversation fetchCompleteConversation(@NonNull String conversationId) {
         L.d(TAG, "Fetching complete conversation " + conversationId);
-        Conversation.Builder conversationBuilder = initConversationBuilder(conversationId);
-        Cursor mmsCursor = getMmsCursor(conversationId);
-        Cursor smsCursor = getSmsCursor(conversationId);
+
         Context context = AppFactory.get().getContext();
         int messageLimit = context.getResources().getInteger(R.integer.conversation_size_limit);
+        Conversation.Builder conversationBuilder = initConversationBuilder(conversationId);
 
-        // message list sorted by date desc (latest to oldest)
-        List<Conversation.Message> messages =
-                MessageUtils.getMessages(messageLimit, mmsCursor, smsCursor);
+        List<Conversation.Message> messages;
+        try (Cursor mmsCursor = getMmsCursor(conversationId);
+             Cursor smsCursor = getSmsCursor(conversationId)) {
+            // message list sorted by date desc (latest to oldest)
+            messages = MessageUtils.getMessages(messageLimit, mmsCursor, smsCursor);
+        }
 
         List<Conversation.Message> messagesToRead = MessageUtils.getUnreadMessages(messages);
         int unreadCount = messagesToRead.size();

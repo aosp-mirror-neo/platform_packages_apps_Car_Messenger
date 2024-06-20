@@ -96,23 +96,29 @@ public class NewMessageLiveData extends ContentProviderLiveData<Conversation> {
             if (hasProjectionInForeground(userAccount)) {
                 continue;
             }
-            Cursor mmsCursor = getMmsCursor(userAccount);
-            boolean foundNewMms = postNewMessageIfFound(mmsCursor, userAccount);
-            if (foundNewMms) {
-                L.d(TAG, "found new MMS");
-                String messageId =
-                        String.valueOf(mmsCursor.getInt(mmsCursor.getColumnIndex(BaseColumns._ID)));
-                mDataModel.markAsSeen(messageId, CursorUtils.ContentType.MMS);
-                break;
+
+            boolean foundNewMsg;
+            try (Cursor mmsCursor = getMmsCursor(userAccount)) {
+                foundNewMsg = postNewMessageIfFound(mmsCursor, userAccount);
+                if (foundNewMsg) {
+                    L.d(TAG, "found new MMS");
+                    String messageId = String.valueOf(
+                            mmsCursor.getInt(mmsCursor.getColumnIndex(BaseColumns._ID)));
+                    mDataModel.markAsSeen(messageId, CursorUtils.ContentType.MMS);
+                }
             }
 
-            Cursor smsCursor = getSmsCursor(userAccount);
-            boolean foundNewSms = postNewMessageIfFound(smsCursor, userAccount);
-            if (foundNewSms) {
-                L.d(TAG, "found new SMS");
-                String messageId =
-                        String.valueOf(smsCursor.getInt(smsCursor.getColumnIndex(BaseColumns._ID)));
-                mDataModel.markAsSeen(messageId, CursorUtils.ContentType.SMS);
+            try (Cursor smsCursor = getSmsCursor(userAccount)) {
+                foundNewMsg = postNewMessageIfFound(smsCursor, userAccount);
+                if (foundNewMsg) {
+                    L.d(TAG, "found new SMS");
+                    String messageId = String.valueOf(
+                            smsCursor.getInt(smsCursor.getColumnIndex(BaseColumns._ID)));
+                    mDataModel.markAsSeen(messageId, CursorUtils.ContentType.SMS);
+                }
+            }
+
+            if (foundNewMsg) {
                 break;
             }
         }

@@ -38,7 +38,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.messenger.R;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.interfaces.BluetoothState;
 import com.android.car.messenger.testing.TestActivity;
 
 import org.junit.Before;
@@ -67,8 +66,7 @@ public class ConversationListFragmentTest {
         when(mMockUserAccount.getId()).thenReturn(USER_ID);
     }
 
-    private void startFragment(UserAccount userAccount, List<UIConversationItem> conversations,
-            int state) {
+    private void startFragment(UserAccount userAccount, List<UIConversationItem> conversations) {
         mActivityScenario = ActivityScenario.launch(TestActivity.class);
         mActivityScenario.onActivity(activity -> {
             ConversationListViewModel viewModel = new ViewModelProvider(activity).get(
@@ -76,8 +74,6 @@ public class ConversationListFragmentTest {
 
             when(viewModel.getConversations(mMockUserAccount)).thenReturn(
                     new MutableLiveData<>(conversations));
-            when(viewModel.getBluetoothStateLiveData()).thenReturn(
-                    new MutableLiveData<>(state));
 
             mFragment = ConversationListFragment.newInstance(userAccount);
             activity.getSupportFragmentManager().beginTransaction().add(
@@ -86,26 +82,8 @@ public class ConversationListFragmentTest {
     }
 
     @Test
-    public void testOnViewCreated_noUserAccount() {
-        startFragment(null, null, BluetoothState.ENABLED);
-        onView(withId(R.id.error_message))
-                .check(matches(withText(R.string.bluetooth_disconnected)));
-        onView(withId(R.id.error_action_button))
-                .check(matches(withText(R.string.connect_bluetooth_button_text)));
-    }
-
-    @Test
-    public void testOnViewCreated_noDevice() {
-        startFragment(mMockUserAccount, null, BluetoothState.DISABLED);
-        onView(withId(R.id.error_message))
-                .check(matches(withText(R.string.bluetooth_disconnected)));
-        onView(withId(R.id.error_action_button))
-                .check(matches(withText(R.string.connect_bluetooth_button_text)));
-    }
-
-    @Test
     public void testOnViewCreated_emptyList() {
-        startFragment(mMockUserAccount, Collections.EMPTY_LIST, BluetoothState.ENABLED);
+        startFragment(mMockUserAccount, Collections.EMPTY_LIST);
         onView(withId(R.id.empty_message)).check(matches(withText(R.string.no_messages)));
     }
 
@@ -134,7 +112,7 @@ public class ConversationListFragmentTest {
                 mock(Conversation.class));
         conversations.add(item);
 
-        startFragment(mMockUserAccount, conversations, BluetoothState.ENABLED);
+        startFragment(mMockUserAccount, conversations);
 
         onView(withId(R.id.list_view))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
@@ -174,7 +152,7 @@ public class ConversationListFragmentTest {
                 mock(Conversation.class));
         conversations.add(item);
 
-        startFragment(mMockUserAccount, conversations, BluetoothState.ENABLED);
+        startFragment(mMockUserAccount, conversations);
 
         onView(withId(R.id.list_view))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.car.messenger.ui.launcher;
 
 import android.app.Application;
@@ -21,7 +20,10 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
+import com.android.car.apps.common.log.L;
+import com.android.car.messenger.bluetooth.BluetoothStateLiveData;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
@@ -30,11 +32,23 @@ import java.util.List;
 
 /** View model for MessageLauncherActivity */
 public class MessageLauncherViewModel extends AndroidViewModel {
+    private static final String TAG = "CM.MessageLauncherViewModel";
+
     @NonNull private final DataModel mDataSource;
+
+    private LiveData<Integer> mBluetoothStateLiveData;
+    private Observer mBluetoothStateObserver;
 
     public MessageLauncherViewModel(@NonNull Application application) {
         super(application);
         mDataSource = AppFactory.get().getDataModel();
+        mBluetoothStateLiveData = new BluetoothStateLiveData(application.getApplicationContext());
+        mBluetoothStateObserver = o -> L.i(TAG, "BluetoothState changed");
+        mBluetoothStateLiveData.observeForever(mBluetoothStateObserver);
+    }
+
+    public LiveData<Integer> getBluetoothStateLiveData() {
+        return mBluetoothStateLiveData;
     }
 
     @NonNull

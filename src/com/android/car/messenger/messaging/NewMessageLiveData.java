@@ -33,7 +33,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.car.apps.common.log.L;
 import com.android.car.messenger.MessageConstants;
 import com.android.car.messenger.bluetooth.UserAccount;
-import com.android.car.messenger.bluetooth.UserAccountLiveData;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
@@ -52,7 +52,8 @@ public class NewMessageLiveData extends ContentProviderLiveData<Conversation> {
 
     private final DataModel mDataModel;
     @NonNull
-    private final UserAccountLiveData mUserAccountLiveData = UserAccountLiveData.getInstance();
+    private final UserAccountListLiveData mUserAccountListLiveData =
+            UserAccountListLiveData.getInstance();
 
     @VisibleForTesting
     @NonNull
@@ -76,7 +77,7 @@ public class NewMessageLiveData extends ContentProviderLiveData<Conversation> {
     @Override
     protected void onActive() {
         super.onActive();
-        addSource(mUserAccountLiveData, it -> mUserAccounts = it.getAccounts());
+        addSource(mUserAccountListLiveData, it -> mUserAccounts = it.getAccounts());
         if (getValue() == null) {
             onDataChange();
         }
@@ -85,7 +86,7 @@ public class NewMessageLiveData extends ContentProviderLiveData<Conversation> {
     @Override
     protected void onInactive() {
         super.onInactive();
-        removeSource(mUserAccountLiveData);
+        removeSource(mUserAccountListLiveData);
         mUserAccounts.clear();
     }
 

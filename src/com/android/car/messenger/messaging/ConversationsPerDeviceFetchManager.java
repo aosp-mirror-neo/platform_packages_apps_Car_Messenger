@@ -33,7 +33,7 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 
 import com.android.car.messenger.bluetooth.UserAccount;
-import com.android.car.messenger.bluetooth.UserAccountLiveData;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.interfaces.AppFactory;
 
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ class ConversationsPerDeviceFetchManager {
         mContext.getContentResolver()
                 .registerContentObserver(URI, /* notifyForDescendants= */ false, mObserver);
         mRemovedConversationLiveData.addSource(
-                UserAccountLiveData.getInstance(), onUserAccountRemovedObserver());
+                UserAccountListLiveData.getInstance(), onUserAccountRemovedObserver());
     }
 
     /**
@@ -104,8 +104,8 @@ class ConversationsPerDeviceFetchManager {
     }
 
     private void onDataChange() {
-        UserAccountLiveData.UserAccountChangeList changeList =
-                UserAccountLiveData.getInstance().getValue();
+        UserAccountListLiveData.UserAccountChangeList changeList =
+                UserAccountListLiveData.getInstance().getValue();
         if (changeList == null) {
             return;
         }
@@ -203,7 +203,7 @@ class ConversationsPerDeviceFetchManager {
     }
 
     @NonNull
-    private Observer<UserAccountLiveData.UserAccountChangeList> onUserAccountRemovedObserver() {
+    private Observer<UserAccountListLiveData.UserAccountChangeList> onUserAccountRemovedObserver() {
         return userAccountChangeList -> {
             if (userAccountChangeList == null) {
                 return;

@@ -19,44 +19,33 @@ package com.android.car.messenger.ui.launcher;
 import android.app.Application;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Transformations;
 
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /** View model for MessageLauncherActivity */
 public class MessageLauncherViewModel extends AndroidViewModel {
     @NonNull private final DataModel mDataSource;
-    @Nullable private LiveData<List<UserAccount>> mAccountsLiveData;
-
-    // We currently only support the primary account until multi-account support is added
-    private static final int DEVICE_LIMIT = 1;
 
     public MessageLauncherViewModel(@NonNull Application application) {
         super(application);
         mDataSource = AppFactory.get().getDataModel();
     }
 
+    @NonNull
+    public LiveData<UserAccount> getCurrentAccount() {
+        return mDataSource.getCurrentAccount();
+    }
+
     /** Get observable data with list of accounts/user accounts */
     @NonNull
     public LiveData<List<UserAccount>> getAccounts() {
-        if (mAccountsLiveData == null) {
-            mAccountsLiveData = getAccountList();
-        }
-        return mAccountsLiveData;
+        return mDataSource.getAccounts();
     }
 
-    private LiveData<List<UserAccount>> getAccountList() {
-        return Transformations.map(
-                mDataSource.getAccounts(),
-                accountList ->
-                        accountList.stream().limit(DEVICE_LIMIT).collect(Collectors.toList()));
-    }
 }

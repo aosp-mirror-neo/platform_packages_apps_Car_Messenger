@@ -50,21 +50,17 @@ public class MessageLauncherActivity extends FragmentActivity implements InsetsC
         startService(new Intent(this, MessengerService.class));
 
         viewModel
-                .getAccounts()
+                .getCurrentAccount()
                 .observe(
                         this,
-                        accounts -> {
-                            L.d(TAG, "Total number of accounts: %d", accounts.size());
-                            // First version only takes one device until multi-account support is
-                            // added
-                            UserAccount primaryAccount =
-                                    !accounts.isEmpty() ? accounts.get(0) : null;
+                        account -> {
+                            L.d(TAG, "currentAccount:" + account);
                             String fragmentTag =
-                                    ConversationListFragment.getFragmentTag(primaryAccount);
+                                    ConversationListFragment.getFragmentTag(account);
                             Fragment fragment =
                                     getSupportFragmentManager().findFragmentByTag(fragmentTag);
                             if (fragment == null) {
-                                fragment = ConversationListFragment.newInstance(primaryAccount);
+                                fragment = ConversationListFragment.newInstance(account);
                             }
                             setContentFragment(fragment, fragmentTag);
                         });

@@ -18,12 +18,14 @@ package com.android.car.messenger.interfaces;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * This interface allows the UI to communicate with the host app. The methods provides the data and
@@ -35,11 +37,17 @@ import java.util.Collection;
 public interface DataModel {
 
     /**
+     * The currently selected user account.
+     */
+    @NonNull
+    MutableLiveData<UserAccount> getCurrentAccount();
+
+    /**
      * Get list of accounts. Here an account can refer to actual accounts or separate user accounts.
      * Data will be separated in the UI by user accounts.
      */
     @NonNull
-    LiveData<Collection<UserAccount>> getAccounts();
+    LiveData<List<UserAccount>> getAccounts();
 
     /**
      * Call this to reload data. This is useful when resuming an activity, to ensure no account

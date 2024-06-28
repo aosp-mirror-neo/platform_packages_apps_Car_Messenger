@@ -48,7 +48,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.apps.common.testutils.InstantTaskExecutorRule;
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.bluetooth.UserAccount;
-import com.android.car.messenger.bluetooth.UserAccountLiveData;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.utils.ConversationFetchUtil;
 import com.android.car.messenger.messaging.utils.CursorUtils;
@@ -95,7 +95,7 @@ public class NewMessageLiveDataTest {
     @Mock
     private UserAccount mMockUserAccount;
     @Mock
-    private UserAccountLiveData mMockUserAccountLiveData;
+    private UserAccountListLiveData mMockUserAccountListLiveData;
     @Mock
     private CarStateListener mMockCarStateListener;
     @Mock
@@ -139,10 +139,11 @@ public class NewMessageLiveDataTest {
         doNothing().when(mMockContentResolver).registerContentObserver(any(), eq(true), any());
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(UserAccountLiveData.class)
+                .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
-            doReturn(mMockUserAccountLiveData).when(() -> UserAccountLiveData.getInstance());
+            doReturn(mMockUserAccountListLiveData).when(
+                    () -> UserAccountListLiveData.getInstance());
 
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.observe(mMockLifecycleOwner,
@@ -166,14 +167,15 @@ public class NewMessageLiveDataTest {
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
                 .spyStatic(ConversationFetchUtil.class)
-                .spyStatic(UserAccountLiveData.class)
+                .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
             Conversation conversation = new Conversation.Builder(
                     new Person.Builder().build(), /* conversationId= */ "0").build();
             doReturn(conversation).when(
                     () -> ConversationFetchUtil.fetchCompleteConversation(any()));
-            doReturn(mMockUserAccountLiveData).when(() -> UserAccountLiveData.getInstance());
+            doReturn(mMockUserAccountListLiveData).when(
+                    () -> UserAccountListLiveData.getInstance());
 
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.mUserAccounts = mUserAccountList;
@@ -201,14 +203,15 @@ public class NewMessageLiveDataTest {
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
                 .spyStatic(ConversationFetchUtil.class)
-                .spyStatic(UserAccountLiveData.class)
+                .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
             Conversation conversation = new Conversation.Builder(
                     new Person.Builder().build(), /* conversationId= */ "0").build();
             doReturn(conversation).when(
                     () -> ConversationFetchUtil.fetchCompleteConversation(any()));
-            doReturn(mMockUserAccountLiveData).when(() -> UserAccountLiveData.getInstance());
+            doReturn(mMockUserAccountListLiveData).when(
+                    () -> UserAccountListLiveData.getInstance());
 
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.mUserAccounts = mUserAccountList;
@@ -231,10 +234,11 @@ public class NewMessageLiveDataTest {
         when(mMockCarStateListener.isProjectionInActiveForeground(any())).thenReturn(true);
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(UserAccountLiveData.class)
+                .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
-            doReturn(mMockUserAccountLiveData).when(() -> UserAccountLiveData.getInstance());
+            doReturn(mMockUserAccountListLiveData).when(
+                    () -> UserAccountListLiveData.getInstance());
 
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.mUserAccounts = mUserAccountList;

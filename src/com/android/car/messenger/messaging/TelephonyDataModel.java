@@ -27,13 +27,15 @@ import android.telephony.SmsManager;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.android.car.apps.common.log.L;
 import com.android.car.messenger.bluetooth.RefreshLiveData;
 import com.android.car.messenger.bluetooth.UserAccount;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData.UserAccountChangeList;
 import com.android.car.messenger.bluetooth.UserAccountLiveData;
-import com.android.car.messenger.bluetooth.UserAccountLiveData.UserAccountChangeList;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
@@ -41,6 +43,7 @@ import com.android.car.messenger.messaging.utils.CursorUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /** Queries the telephony data model to retrieve the SMS/MMS messages */
@@ -49,14 +52,20 @@ public class TelephonyDataModel implements DataModel {
 
     @NonNull
     @Override
-    public LiveData<Collection<UserAccount>> getAccounts() {
+    public MutableLiveData<UserAccount> getCurrentAccount() {
+        return UserAccountLiveData.getInstance();
+    }
+
+    @NonNull
+    @Override
+    public LiveData<List<UserAccount>> getAccounts() {
         return Transformations.map(
-                UserAccountLiveData.getInstance(), UserAccountChangeList::getAccounts);
+                UserAccountListLiveData.getInstance(), UserAccountChangeList::getAccounts);
     }
 
     @Override
     public void refresh() {
-        UserAccountLiveData.getInstance().refresh();
+        UserAccountListLiveData.getInstance().refresh();
         RefreshLiveData.getInstance().refresh();
     }
 
@@ -141,7 +150,7 @@ public class TelephonyDataModel implements DataModel {
     @Override
     public void sendMessage(
             @NonNull String iccId, @NonNull String phoneNumber, @NonNull String message) {
-        UserAccount userAccount = UserAccountLiveData.getUserAccount(iccId);
+        UserAccount userAccount = UserAccountListLiveData.getUserAccount(iccId);
         if (userAccount == null) {
             L.d(TAG, "Could not find User Account with specified iccId. Unable to send message");
             return;

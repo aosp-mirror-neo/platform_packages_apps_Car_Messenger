@@ -132,11 +132,11 @@ dependencies {
     implementation "androidx.annotation:annotation:1.0.1"
 
     implementation project(':car-apps-common')
-    implementation project(":car-assist-lib")
-    implementation project(path: ':car-messenger-common')
-    implementation project(":car-messenger-common:model")
-    implementation project(":car-ui-lib")
-    implementation project(':car-apps-common')
+    implementation project(':car-assist-lib')
+    implementation project(':car-messenger-common')
+    implementation project(':car-messenger-common:model')
+    implementation project(':car-ui-lib')
+    implementation project(':car-telephony-common')
 
     fakeImplementation 'com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1'
     fakeImplementation project(path: ":car-messenger-app:testing")

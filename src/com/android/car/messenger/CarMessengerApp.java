@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.telephony.common.InMemoryPhoneBook;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
@@ -37,6 +38,7 @@ public class CarMessengerApp extends Application implements UncaughtExceptionHan
         L.d(TAG, "CarMessengerApp onCreate");
         super.onCreate();
         AppFactoryImpl.register(this);
+        InMemoryPhoneBook.init(this);
         sSystemUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }

@@ -32,6 +32,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.Person;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.common.Conversation.Message;
 import com.android.car.messenger.common.Conversation.Message.MessageStatus;
@@ -55,10 +56,12 @@ public final class MessageUtils {
      * @param messageCursors The messageCursors of messages in descending order
      */
     @NonNull
-    public static List<Message> getMessages(int limit, @Nullable Cursor... messageCursors) {
+    public static List<Message> getMessages(
+            UserAccount userAccount, int limit, @Nullable Cursor... messageCursors) {
         List<Message> messages = new ArrayList<>();
         for (Cursor cursor : messageCursors) {
             MessageUtils.forEachDesc(
+                    userAccount,
                     cursor,
                     message -> {
                         messages.add(message);
@@ -96,7 +99,9 @@ public final class MessageUtils {
      *     to continue parsing the cursor or false to return.
      */
     private static void forEachDesc(
-            @Nullable Cursor messageCursor, @NonNull Function<Message, Boolean> processor) {
+            @NonNull UserAccount userAccount,
+            @Nullable Cursor messageCursor,
+            @NonNull Function<Message, Boolean> processor) {
         if (messageCursor == null || !messageCursor.moveToFirst()) {
             return;
         }
@@ -106,10 +111,15 @@ public final class MessageUtils {
         do {
             Message message;
             try {
-                message = parseMessageAtPoint(context, messageCursor, hasBeenRepliedTo);
+                message = parseMessageAtPoint(
+                        context, userAccount, messageCursor, hasBeenRepliedTo);
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
                 L.d(TAG, "Message was not able to be parsed. Skipping.");
+                continue;
+            }
+            if (message == null) {
+                L.d(TAG, "Message is null, skipped");
                 continue;
             }
             if (message.getText().trim().isEmpty()) {
@@ -135,15 +145,20 @@ public final class MessageUtils {
      * @throws IllegalArgumentException if desired columns are missing.
      * @see CursorUtils#CONTENT_CONVERSATION_PROJECTION
      */
-    @NonNull
+    @Nullable
     private static Conversation.Message parseMessageAtPoint(
-            @NonNull Context context, @NonNull Cursor cursor, boolean userHasReplied) {
+            @NonNull Context context,
+            @NonNull UserAccount userAccount,
+            @NonNull Cursor cursor,
+            boolean userHasReplied) {
         MmsSmsMessage msg =
                 MmsUtils.isMms(cursor)
                         ? MmsUtils.parseMms(context, cursor)
                         : SmsUtils.parseSms(cursor);
-        Person person =
-                ContactUtils.getPerson(context, msg.mPhoneNumber, /* processParticipant= */ null);
+        if (msg.mSubscriptionId != userAccount.getId()) {
+            return null;
+        }
+        Person person = ContactUtils.getPerson(context, msg.mPhoneNumber, userAccount, null);
         Conversation.Message message =
                 new Conversation.Message(msg.mBody, msg.mDate.toEpochMilli(), person);
         if (msg.mType == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {

@@ -61,6 +61,7 @@ public class MessageLauncherActivity extends FragmentActivity implements InsetsC
                 .observe(this, pair -> {
                     int bluetoothState = pair.first;
                     UserAccount userAccount = pair.second;
+
                     String fragmentTag;
                     Fragment fragment;
                     if (bluetoothState != BluetoothState.ENABLED || userAccount == null) {

@@ -40,7 +40,6 @@ import com.android.car.messenger.messaging.utils.ConversationUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,7 +92,7 @@ class ConversationListLiveData extends ContentProviderLiveData<Collection<Conver
                 String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
                 Conversation conversation = null;
                 try {
-                    conversation = fetchCompleteConversation(conversationId);
+                    conversation = fetchCompleteConversation(conversationId, mUserAccount);
                 } catch (CursorIndexOutOfBoundsException e) {
                     L.w(TAG, "Error occurred fetching conversation Id: %s", conversationId);
                 } finally {
@@ -103,7 +102,7 @@ class ConversationListLiveData extends ContentProviderLiveData<Collection<Conver
                 }
             }
         }
-        Collections.sort(conversations, sConversationComparator);
+        conversations.sort(sConversationComparator);
         postValue(conversations);
     }
 

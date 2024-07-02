@@ -136,7 +136,7 @@ public class NewMessageLiveData extends ContentProviderLiveData<Conversation> {
 
         Conversation conversation;
         try {
-            conversation = fetchCompleteConversation(conversationId);
+            conversation = fetchCompleteConversation(conversationId, userAccount);
         } catch (CursorIndexOutOfBoundsException e) {
             L.w(TAG, "Error occurred fetching conversation Id: %s", conversationId);
             return false;

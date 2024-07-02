@@ -32,6 +32,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.android.car.apps.common.log.L;
 import com.android.car.messenger.MessageConstants;
 import com.android.car.messenger.R;
+import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.ui.utils.AvatarUtil;
@@ -56,18 +57,20 @@ public class ConversationFetchUtil {
      *
      * Messages are ordered in ascending order, from oldest to latest
      */
-    public static Conversation fetchCompleteConversation(@NonNull String conversationId) {
+    public static Conversation fetchCompleteConversation(
+            @NonNull String conversationId, @NonNull UserAccount userAccount) {
         L.d(TAG, "Fetching complete conversation " + conversationId);
 
         Context context = AppFactory.get().getContext();
         int messageLimit = context.getResources().getInteger(R.integer.conversation_size_limit);
-        Conversation.Builder conversationBuilder = initConversationBuilder(conversationId);
+        Conversation.Builder conversationBuilder =
+                initConversationBuilder(conversationId, userAccount);
 
         List<Conversation.Message> messages;
         try (Cursor mmsCursor = getMmsCursor(conversationId);
              Cursor smsCursor = getSmsCursor(conversationId)) {
             // message list sorted by date desc (latest to oldest)
-            messages = MessageUtils.getMessages(messageLimit, mmsCursor, smsCursor);
+            messages = MessageUtils.getMessages(userAccount, messageLimit, mmsCursor, smsCursor);
         }
 
         List<Conversation.Message> messagesToRead = MessageUtils.getUnreadMessages(messages);
@@ -80,7 +83,8 @@ public class ConversationFetchUtil {
     }
 
     @NonNull
-    private static Conversation.Builder initConversationBuilder(@NonNull String conversationId) {
+    private static Conversation.Builder initConversationBuilder(
+            @NonNull String conversationId, @NonNull UserAccount userAccount) {
         Context context = AppFactory.get().getContext();
         String userName = ContactUtils.DRIVER_NAME;
         Conversation.Builder builder =
@@ -89,6 +93,7 @@ public class ConversationFetchUtil {
         List<Person> participants =
                 fetchParticipants(
                         conversationId,
+                        userAccount,
                         (names, icons) -> {
                             builder.setConversationTitle(formatConversationTitle(names));
                             Bitmap bitmap = AvatarUtil.createGroupAvatar(context, icons);
@@ -135,12 +140,14 @@ public class ConversationFetchUtil {
      */
     private static List<Person> fetchParticipants(
             @NonNull String conversationId,
+            @NonNull UserAccount userAccount,
             @NonNull BiConsumer<List<CharSequence>, List<Bitmap>> processNamesAndIcons) {
         List<CharSequence> participantNames = new ArrayList<>();
         List<Bitmap> participantIcons = new ArrayList<>();
         List<Person> participants =
                 ContactUtils.getRecipients(
                         conversationId,
+                        userAccount,
                         (name, bitmap) -> {
                             participantNames.add(name);
                             participantIcons.add(bitmap);

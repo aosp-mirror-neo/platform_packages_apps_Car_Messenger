@@ -15,8 +15,6 @@
  */
 package com.android.car.messenger.messaging.utils;
 
-import static android.provider.BaseColumns._ID;
-import static android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI;
 import static android.provider.Telephony.ThreadsColumns.RECIPIENT_IDS;
 
 import android.content.ContentUris;
@@ -26,7 +24,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.provider.Telephony.MmsSms;
 import android.text.TextUtils;
 
@@ -35,8 +32,11 @@ import androidx.annotation.Nullable;
 import androidx.core.app.Person;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.ui.utils.AvatarUtil;
+import com.android.car.telephony.common.Contact;
+import com.android.car.telephony.common.InMemoryPhoneBook;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,18 +56,6 @@ public class ContactUtils {
     @NonNull public static final String DRIVER_NAME = "Driver";
     private static final String UNKNOWN = "Unknown";
 
-    @NonNull
-    private static final String[] PROJECTION =
-            new String[] {
-                ContactsContract.PhoneLookup.DISPLAY_NAME,
-                ContactsContract.PhoneLookup.CONTACT_ID,
-                _ID,
-                ContactsContract.PhoneLookup.PHOTO_ID,
-                ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
-                ContactsContract.PhoneLookup.PHOTO_FILE_ID,
-                ContactsContract.PhoneLookup.PHOTO_URI
-            };
-
     private ContactUtils() {}
     /**
      * Get the list of recipients as {@link Person} for the given conversation id
@@ -77,6 +65,7 @@ public class ContactUtils {
      */
     public static List<Person> getRecipients(
             @NonNull String conversationId,
+            @NonNull UserAccount userAccount,
             @Nullable BiConsumer<String, Bitmap> processParticipant) {
         String[] recipientIds = getRecipientIds(conversationId);
         List<Person> participants = new ArrayList<>();
@@ -88,7 +77,7 @@ public class ContactUtils {
                 L.e(TAG, "No phone number found for contactId: %s", contactId);
                 number = "";
             }
-            Person person = getPerson(context, number, processParticipant);
+            Person person = getPerson(context, number, userAccount, processParticipant);
             participants.add(person);
         }
 
@@ -116,30 +105,20 @@ public class ContactUtils {
     static Person getPerson(
             @NonNull Context context,
             @NonNull String phoneNo,
+            @NonNull UserAccount userAccount,
             @Nullable BiConsumer<String, Bitmap> processParticipant) {
         String name = TextUtils.isEmpty(phoneNo) ? UNKNOWN : phoneNo;
         Bitmap bitmap = null;
-        Cursor cursor = null;
-        try {
-            Uri uri = CONTENT_FILTER_URI.buildUpon().appendEncodedPath(Uri.encode(phoneNo)).build();
-            cursor = CursorUtils.simpleQueryWithProjection(context, uri, PROJECTION);
-        } catch (IllegalArgumentException e) {
-            L.w(TAG, "Unable to retrieve PhoneLookup cursor");
-            L.w(TAG, e.toString());
-        }
+        Contact contact =
+                InMemoryPhoneBook.get().lookupContactEntry(phoneNo, userAccount.getIccId());
 
-        if (cursor != null && cursor.moveToFirst()) {
-            name =
-                    cursor.getString(
-                            cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-            String thumbnailPath =
-                    cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI));
-
-            if (thumbnailPath != null && processParticipant != null) {
+        if (contact != null) {
+            name = contact.getDisplayName();
+            if (contact.getAvatarUri() != null) {
                 try {
-                    Uri thumbnailUri = Uri.parse(thumbnailPath);
+                    Uri uri = contact.getAvatarUri();
                     AssetFileDescriptor fd =
-                            context.getContentResolver().openAssetFileDescriptor(thumbnailUri, "r");
+                            context.getContentResolver().openAssetFileDescriptor(uri, "r");
                     if (fd != null) {
                         InputStream stream = fd.createInputStream();
                         bitmap = BitmapFactory.decodeStream(stream);
@@ -149,10 +128,6 @@ public class ContactUtils {
                     L.e(TAG, e.toString());
                 }
             }
-        }
-
-        if (cursor != null && !cursor.isClosed()) {
-            cursor.close();
         }
 
         // don't include icon when building out the Person class in order

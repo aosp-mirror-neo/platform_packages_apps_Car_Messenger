@@ -36,6 +36,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.MessageConstants;
+import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.common.Conversation.Message;
 import com.android.car.messenger.testing.TestUtils;
@@ -65,6 +66,8 @@ public class ConversationFetchUtilTest {
     private Context mContext;
     @Mock
     private SharedPreferences mMockSharedPreferences;
+    @Mock
+    private UserAccount mMockUserAccount;
 
     @Before
     public void setup() {
@@ -92,10 +95,10 @@ public class ConversationFetchUtilTest {
 
         try {
             setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
+            doReturn(messages).when(() -> MessageUtils.getMessages(any(), anyInt(), any(), any()));
 
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
+            Conversation conversation = ConversationFetchUtil.fetchCompleteConversation(
+                    TEST_CONTACT_ID, mMockUserAccount);
             assertThat(conversation.getMessages()).isEmpty();
             assertThat(conversation.getUnreadCount()).isEqualTo(0);
         } finally {
@@ -124,10 +127,10 @@ public class ConversationFetchUtilTest {
 
         try {
             setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
+            doReturn(messages).when(() -> MessageUtils.getMessages(any(), anyInt(), any(), any()));
 
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
+            Conversation conversation = ConversationFetchUtil.fetchCompleteConversation(
+                    TEST_CONTACT_ID, mMockUserAccount);
             assertThat(conversation.getMessages())
                     .containsExactly(msg1, reply1, msg2, reply2).inOrder();
             assertThat(conversation.getUnreadCount()).isEqualTo(0);
@@ -157,10 +160,10 @@ public class ConversationFetchUtilTest {
 
         try {
             setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
+            doReturn(messages).when(() -> MessageUtils.getMessages(any(), anyInt(), any(), any()));
 
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
+            Conversation conversation = ConversationFetchUtil.fetchCompleteConversation(
+                    TEST_CONTACT_ID, mMockUserAccount);
             assertThat(conversation.getMessages())
                     .containsExactly(reply1, msg1, msg2, msg3).inOrder();
             assertThat(conversation.getUnreadCount()).isEqualTo(2);
@@ -183,7 +186,7 @@ public class ConversationFetchUtilTest {
 
     private void setupFetch(Person person) {
         doReturn(Arrays.asList(person)).when(
-                () -> ContactUtils.getRecipients(anyString(), any()));
+                () -> ContactUtils.getRecipients(anyString(), any(), any()));
         doReturn(null).when(() -> CursorUtils.getMessagesCursor(
                 anyString(), anyInt(), eq(CursorUtils.ContentType.MMS)));
         doReturn(null).when(() -> CursorUtils.getMessagesCursor(

@@ -92,7 +92,7 @@ public class ConversationListViewModel extends AndroidViewModel {
 
     private LiveData<Pair<CarUxRestrictions, Collection<Conversation>>> subscribeToConversations(
             @NonNull UserAccount userAccount) {
-        final LiveData<Collection<Conversation>> liveData =
+        final LiveData<List<Conversation>> liveData =
                 mDataModel.getConversations(userAccount);
         return Transformations.switchMap(
                 AppFactory.get().getCarStateListener().getUxrRestrictions(),

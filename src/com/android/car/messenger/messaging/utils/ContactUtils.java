@@ -108,8 +108,9 @@ public class ContactUtils {
             @Nullable BiConsumer<String, Bitmap> processParticipant) {
         String name = TextUtils.isEmpty(phoneNo) ? UNKNOWN : phoneNo;
         Bitmap bitmap = null;
-        Contact contact =
-                InMemoryPhoneBook.get().lookupContactEntry(phoneNo, userAccount.getIccId());
+
+        Contact contact = InMemoryPhoneBook.get().lookupContactEntry(
+                phoneNo, userAccount.getIccId());
 
         if (contact != null) {
             name = contact.getDisplayName();

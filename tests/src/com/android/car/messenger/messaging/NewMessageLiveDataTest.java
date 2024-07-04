@@ -23,18 +23,11 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.when;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.Telephony;
 
 import androidx.core.app.Person;
 import androidx.lifecycle.Lifecycle;
@@ -50,8 +43,8 @@ import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.messaging.utils.ConversationFetchUtil;
 import com.android.car.messenger.messaging.utils.CursorUtils;
+import com.android.car.messenger.messaging.utils.MmsSmsMessage;
 import com.android.car.messenger.util.CarStateListener;
 
 import org.junit.After;
@@ -60,8 +53,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.MockitoSession;
@@ -69,6 +60,7 @@ import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @RunWith(AndroidJUnit4.class)
 public class NewMessageLiveDataTest {
@@ -89,10 +81,6 @@ public class NewMessageLiveDataTest {
     private Observer<Conversation> mMockObserver;
     private Context mContext;
     @Mock
-    private ContentResolver mMockContentResolver;
-    @Mock
-    private Cursor mMockCursor;
-    @Mock
     private UserAccount mMockUserAccount;
     @Mock
     private UserAccountListLiveData mMockUserAccountListLiveData;
@@ -100,11 +88,12 @@ public class NewMessageLiveDataTest {
     private CarStateListener mMockCarStateListener;
     @Mock
     private TelephonyDataModel mDataModel;
+    @Mock
+    private InMemoryConversationLog mInMemoryConversationLog;
     private ArrayList<UserAccount> mUserAccountList;
-    @Captor
-    private ArgumentCaptor<Uri> mUriCaptor;
 
-    private static final int MESSAGE_ID = 123;
+    private static final String MESSAGE_ID = "123";
+    private static final String CONVERSATION_ID = "0";
 
     @Before
     public void setup() {
@@ -120,13 +109,6 @@ public class NewMessageLiveDataTest {
 
         mUserAccountList = new ArrayList<>();
         mUserAccountList.add(mMockUserAccount);
-
-        // Sets up default values for stubbed objects related to database queries.
-        when(mContext.getContentResolver()).thenReturn(mMockContentResolver);
-        when(mMockContentResolver.query(any(), any(), any(), any(), any()))
-                .thenReturn(mMockCursor);
-        when(mMockCursor.getColumnIndex(any())).thenReturn(0);
-        when(mMockCursor.getString(anyInt())).thenReturn("0");
     }
 
     @After
@@ -135,95 +117,38 @@ public class NewMessageLiveDataTest {
     }
 
     @Test
-    public void testUri() {
-        doNothing().when(mMockContentResolver).registerContentObserver(any(), eq(true), any());
-
-        MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(UserAccountListLiveData.class)
-                .startMocking();
-        try {
-            doReturn(mMockUserAccountListLiveData).when(
-                    () -> UserAccountListLiveData.getInstance());
-
-            mNewMessageLiveData = new NewMessageLiveData();
-            mNewMessageLiveData.observe(mMockLifecycleOwner,
-                    (value) -> mMockObserver.onChanged(value));
-            mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
-            verify(mMockContentResolver).registerContentObserver(
-                    mUriCaptor.capture(), eq(true), any());
-            assertThat(mUriCaptor.getValue()).isEqualTo(Telephony.MmsSms.CONTENT_URI);
-        } finally {
-            session.finishMocking();
-        }
-    }
-
-    @Test
     @UiThreadTest
-    public void testOnDataChanged_mms() {
-        // First check is for MMS, second is for SMS
-        when(mMockCursor.moveToFirst()).thenReturn(true, false);
-        // Mock retrieval of message id
-        when(mMockCursor.getInt(anyInt())).thenReturn(MESSAGE_ID);
-
+    public void testOnDataChanged() {
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(ConversationFetchUtil.class)
+                .spyStatic(InMemoryConversationLog.class)
                 .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
+            HashMap<Integer, MmsSmsMessage> unseenIndex = new HashMap<>();
+            MmsSmsMessage msg = new MmsSmsMessage.Builder()
+                    .setId(MESSAGE_ID)
+                    .setThreadId(Long.parseLong(CONVERSATION_ID))
+                    .setContentType(1)
+                    .build();
+            unseenIndex.put(USER_ACCOUNT_ID, msg);
             Conversation conversation = new Conversation.Builder(
-                    new Person.Builder().build(), /* conversationId= */ "0").build();
-            doReturn(conversation).when(
-                    () -> ConversationFetchUtil.fetchCompleteConversation(any(), any()));
-            doReturn(mMockUserAccountListLiveData).when(
-                    () -> UserAccountListLiveData.getInstance());
+                    new Person.Builder().build(), CONVERSATION_ID).build();
+
+            doReturn(mInMemoryConversationLog).when(InMemoryConversationLog::get);
+            when(mInMemoryConversationLog.getConversation(
+                    USER_ACCOUNT_ID, CONVERSATION_ID)).thenReturn(conversation);
+            when(mInMemoryConversationLog.getUnseenConversationIndex()).thenReturn(unseenIndex);
+            doReturn(mMockUserAccountListLiveData).when(UserAccountListLiveData::getInstance);
 
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.mUserAccounts = mUserAccountList;
-            mNewMessageLiveData.observe(mMockLifecycleOwner,
-                    (value) -> mMockObserver.onChanged(value));
+            mNewMessageLiveData.observe(mMockLifecycleOwner, v -> mMockObserver.onChanged(v));
             assertThat(mNewMessageLiveData.getValue()).isNull();
             mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
             assertThat(mNewMessageLiveData.getValue()).isEqualTo(conversation);
 
-            verify(mDataModel, never())
-                    .markAsSeen(String.valueOf(MESSAGE_ID), CursorUtils.ContentType.SMS);
-            verify(mDataModel).markAsSeen(String.valueOf(MESSAGE_ID), CursorUtils.ContentType.MMS);
-        } finally {
-            session.finishMocking();
-        }
-    }
-
-    @Test
-    @UiThreadTest
-    public void testOnDataChanged_sms() {
-        // First check is for MMS, second is for SMS
-        when(mMockCursor.moveToFirst()).thenReturn(false, true);
-        // Mock retrieval of message id
-        when(mMockCursor.getInt(anyInt())).thenReturn(MESSAGE_ID);
-
-        MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(ConversationFetchUtil.class)
-                .spyStatic(UserAccountListLiveData.class)
-                .startMocking();
-        try {
-            Conversation conversation = new Conversation.Builder(
-                    new Person.Builder().build(), /* conversationId= */ "0").build();
-            doReturn(conversation).when(
-                    () -> ConversationFetchUtil.fetchCompleteConversation(any(), any()));
-            doReturn(mMockUserAccountListLiveData).when(
-                    () -> UserAccountListLiveData.getInstance());
-
-            mNewMessageLiveData = new NewMessageLiveData();
-            mNewMessageLiveData.mUserAccounts = mUserAccountList;
-            mNewMessageLiveData.observe(mMockLifecycleOwner,
-                    (value) -> mMockObserver.onChanged(value));
-            assertThat(mNewMessageLiveData.getValue()).isNull();
-            mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
-            assertThat(mNewMessageLiveData.getValue()).isEqualTo(conversation);
-
-            verify(mDataModel, never())
-                    .markAsSeen(String.valueOf(MESSAGE_ID), CursorUtils.ContentType.MMS);
-            verify(mDataModel).markAsSeen(String.valueOf(MESSAGE_ID), CursorUtils.ContentType.SMS);
+            verify(mDataModel, never()).markAsSeen(MESSAGE_ID, CursorUtils.ContentType.SMS);
+            verify(mDataModel).markAsSeen(MESSAGE_ID, CursorUtils.ContentType.MMS);
         } finally {
             session.finishMocking();
         }
@@ -234,16 +159,16 @@ public class NewMessageLiveDataTest {
         when(mMockCarStateListener.isProjectionInActiveForeground(any())).thenReturn(true);
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
+                .spyStatic(InMemoryConversationLog.class)
                 .spyStatic(UserAccountListLiveData.class)
                 .startMocking();
         try {
-            doReturn(mMockUserAccountListLiveData).when(
-                    () -> UserAccountListLiveData.getInstance());
-
+            doReturn(mMockUserAccountListLiveData).when(UserAccountListLiveData::getInstance);
+            doReturn(mInMemoryConversationLog).when(InMemoryConversationLog::get);
             mNewMessageLiveData = new NewMessageLiveData();
             mNewMessageLiveData.mUserAccounts = mUserAccountList;
             assertThat(mNewMessageLiveData.getValue()).isNull();
-            mNewMessageLiveData.onDataChange();
+            mNewMessageLiveData.onConversationLogChanged();
             assertThat(mNewMessageLiveData.getValue()).isNull();
         } finally {
             session.finishMocking();

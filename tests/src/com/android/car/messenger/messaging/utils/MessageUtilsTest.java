@@ -30,7 +30,6 @@ import android.database.Cursor;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation.Message;
 import com.android.car.messenger.common.Conversation.Message.MessageStatus;
 import com.android.car.messenger.common.Conversation.Message.MessageType;
@@ -47,11 +46,10 @@ import java.util.List;
 @RunWith(AndroidJUnit4.class)
 public class MessageUtilsTest {
 
-    private static final int MESSAGE_LIMIT = 10;
     private static final int CURRENT_DEVICE_ID = 1;
 
     @Test
-    public void testGetMessages() {
+    public void testGetRawMessages() {
         MmsSmsMessage msg1 = createMessage(
                 /* id= */ "1",
                 /* subId= */ CURRENT_DEVICE_ID,
@@ -100,18 +98,15 @@ public class MessageUtilsTest {
             when(mmsCursor.moveToFirst()).thenReturn(true);
             when(mmsCursor.moveToNext()).thenReturn(true, false);
 
-            UserAccount userAccount = new UserAccount(
-                    CURRENT_DEVICE_ID, "ABC", "A:B:C", Instant.EPOCH);
-
             // Tests the following:
             // 1. Empty messages are skipped
             // 2. Returned messages are in descending order
             // 3. Only return messages from the device with CURRENT_DEVICE_ID
-            List<Message> messages = MessageUtils.getMessages(
-                    userAccount, MESSAGE_LIMIT, mmsCursor, smsCursor);
-            assertThat(messages).hasSize(2);
-            assertThat(messages.get(0).getText()).isEqualTo("text4");
-            assertThat(messages.get(1).getText()).isEqualTo("text3");
+            List<MmsSmsMessage> messages = MessageUtils.getRawMessages(mmsCursor, smsCursor);
+            assertThat(messages).hasSize(3);
+            assertThat(messages.get(0).getBody()).isEqualTo("text4");
+            assertThat(messages.get(1).getBody()).isEqualTo("text3");
+            assertThat(messages.get(2).getBody()).isEqualTo("text2");
         } finally {
             session.finishMocking();
         }
@@ -133,14 +128,14 @@ public class MessageUtilsTest {
 
     private MmsSmsMessage createMessage(
             String id, int subId, long timestamp, String body, int type, boolean isRead) {
-        MmsSmsMessage message = new MmsSmsMessage();
-        message.mId = id;
-        message.mSubscriptionId = subId;
-        message.mThreadId = Integer.parseInt(id);
-        message.mType = type;
-        message.mRead = isRead;
-        message.mDate = Instant.ofEpochMilli(timestamp);
-        message.mBody = body;
-        return message;
+        return new MmsSmsMessage.Builder()
+                .setId(id)
+                .setSubscriptionId(subId)
+                .setThreadId(Integer.parseInt(id))
+                .setType(type)
+                .setRead(isRead)
+                .setDate(Instant.ofEpochMilli(timestamp))
+                .setBody(body)
+                .build();
     }
 }

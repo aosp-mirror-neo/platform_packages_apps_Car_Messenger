@@ -23,9 +23,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
+import android.provider.Telephony.Mms;
 import android.provider.Telephony.Mms.Addr;
 import android.provider.Telephony.Mms.Part;
-import android.provider.Telephony.Sms;
 
 import androidx.annotation.NonNull;
 
@@ -49,27 +49,31 @@ class MmsUtils {
 
     /** Returns true, if item on cursor position is an MMS message */
     static Boolean isMms(@NonNull Cursor cursor) {
-        String contentType = cursor.getString(cursor.getColumnIndex(CONTENT_TYPE));
-        return MMS_CONTENT_TYPE.equals(contentType);
+        int index = cursor.getColumnIndex(CONTENT_TYPE);
+        return index != -1;
     }
 
     /**
      * Returns the parsed result as {link @MmsSmsMessage}
      *
      * @throws IllegalArgumentException if desired columns are missing.
-     * @see CursorUtils#CONTENT_CONVERSATION_PROJECTION
+     * @see CursorUtils#CONTENT_MMS_PROJECTION
      */
     @NonNull
     static MmsSmsMessage parseMms(@NonNull Context context, @NonNull Cursor cursor) {
-        MmsSmsMessage message = new MmsSmsMessage();
-        message.mId = cursor.getString(cursor.getColumnIndex(_ID));
-        message.mThreadId = cursor.getInt(cursor.getColumnIndex(Sms.THREAD_ID));
-        message.mType = cursor.getInt(cursor.getColumnIndex(Telephony.Mms.MESSAGE_BOX));
-        message.mSubscriptionId = cursor.getInt(cursor.getColumnIndex(Sms.SUBSCRIPTION_ID));
-        message.mDate = Instant.ofEpochSecond(cursor.getLong(cursor.getColumnIndex(Sms.DATE)));
-        message.mRead = cursor.getInt(cursor.getColumnIndex(Sms.READ)) == 1;
-        message.mPhoneNumber = getOriginator(context, message.mId);
-        message.mBody = getMmsBody(context, message.mId);
+        String id = cursor.getString(cursor.getColumnIndex(_ID));
+        MmsSmsMessage message = new MmsSmsMessage.Builder()
+                .setId(id)
+                .setThreadId(cursor.getInt(cursor.getColumnIndex(Mms.THREAD_ID)))
+                .setType(cursor.getInt(cursor.getColumnIndex(Telephony.Mms.MESSAGE_BOX)))
+                .setSubscriptionId(cursor.getInt(cursor.getColumnIndex(Mms.SUBSCRIPTION_ID)))
+                .setDate(Instant.ofEpochSecond(cursor.getLong(cursor.getColumnIndex(Mms.DATE))))
+                .setRead(cursor.getInt(cursor.getColumnIndex(Mms.READ)) == 1)
+                .setSeen(cursor.getInt(cursor.getColumnIndex(Mms.SEEN)) == 1)
+                .setPhoneNumber(getOriginator(context, id))
+                .setBody(getMmsBody(context, id))
+                .setContentType(1)
+                .build();
         return message;
     }
 

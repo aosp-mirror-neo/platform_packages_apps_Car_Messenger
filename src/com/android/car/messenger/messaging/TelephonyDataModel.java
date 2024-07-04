@@ -41,7 +41,6 @@ import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +70,7 @@ public class TelephonyDataModel implements DataModel {
 
     @NonNull
     @Override
-    public LiveData<Collection<Conversation>> getConversations(@NonNull UserAccount userAccount) {
+    public LiveData<List<Conversation>> getConversations(@NonNull UserAccount userAccount) {
         return new ConversationListLiveData(userAccount);
     }
 
@@ -113,7 +112,7 @@ public class TelephonyDataModel implements DataModel {
         ContentValues values = new ContentValues();
         values.put(Telephony.TextBasedSmsColumns.SEEN, 1);
         context.getContentResolver()
-                .update(CursorUtils.getMessagesUri(messageId, type), values, /* extras= */ null);
+                .update(CursorUtils.getMessageUri(messageId, type), values, /* extras= */ null);
     }
 
     @Override

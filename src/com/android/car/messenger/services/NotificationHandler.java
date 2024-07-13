@@ -250,4 +250,12 @@ public class NotificationHandler {
                 context.getSystemService(NotificationManager.class);
         notificationManager.cancel(conversationId.hashCode());
     }
+
+    /** Removes all notifications sent by this app */
+    public static void removeAllNotifications() {
+        Context context = AppFactory.get().getContext();
+        NotificationManager notificationManager =
+                context.getSystemService(NotificationManager.class);
+        notificationManager.cancelAll();
+    }
 }

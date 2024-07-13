@@ -41,6 +41,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.apps.common.testutils.InstantTaskExecutorRule;
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.messaging.utils.ConversationFetchUtil;
+import com.android.car.messenger.messaging.utils.CursorUtils;
 import com.android.car.messenger.messaging.utils.MmsSmsMessage;
 
 import org.junit.After;
@@ -107,7 +108,7 @@ public class ConversationLogLiveDataTest {
         when(mMockCursor.getString(anyInt())).thenReturn(CONV_ID, CONV_ID2);
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(ConversationsPerDeviceFetchManager.class)
+                .spyStatic(CursorUtils.class)
                 .spyStatic(ConversationFetchUtil.class)
                 .startMocking();
         try {
@@ -123,7 +124,7 @@ public class ConversationLogLiveDataTest {
             convList2.put(SUB_ID, c2s1);
             convList2.put(SUB_ID2, c2s2);
 
-            doReturn(mMockCursor).when(ConversationsPerDeviceFetchManager::getCursor);
+            doReturn(mMockCursor).when(CursorUtils::getConversationsCursor);
             doReturn(convList).when(() -> ConversationFetchUtil.fetchConversationThread(CONV_ID));
             doReturn(convList2).when(() -> ConversationFetchUtil.fetchConversationThread(CONV_ID2));
 

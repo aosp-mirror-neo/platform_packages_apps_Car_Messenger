@@ -81,8 +81,8 @@ public class TelephonyDataModel implements DataModel {
     }
 
     @Override
-    public void muteConversation(@NonNull String conversationId, boolean mute) {
-        L.d(TAG, "Muting conversation: " + conversationId);
+    public void setConversationMuted(@NonNull String conversationId, boolean mute) {
+        L.d(TAG, "Setting conversation mute: %s %b", conversationId, mute);
         SharedPreferences sharedPreferences = AppFactory.get().getSharedPreferences();
         Set<String> mutedConversations =
                 sharedPreferences.getStringSet(KEY_MUTED_CONVERSATIONS, new HashSet<>());
@@ -155,16 +155,5 @@ public class TelephonyDataModel implements DataModel {
             return;
         }
         sendMessage(userAccount.getId(), phoneNumber, message);
-    }
-
-    @NonNull
-    @Override
-    public LiveData<String> onConversationRemoved() {
-        return Transformations.map(
-                ConversationsPerDeviceFetchManager.getInstance().getRemovedConversationLiveData(),
-                id -> {
-                    muteConversation(id, false);
-                    return id;
-                });
     }
 }

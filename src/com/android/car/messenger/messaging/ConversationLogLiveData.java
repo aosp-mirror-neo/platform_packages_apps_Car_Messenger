@@ -26,6 +26,7 @@ import android.provider.Telephony;
 
 import com.android.car.apps.common.log.L;
 import com.android.car.messenger.bluetooth.RefreshLiveData;
+import com.android.car.messenger.messaging.utils.CursorUtils;
 import com.android.car.messenger.messaging.utils.MmsSmsMessage;
 
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class ConversationLogLiveData extends
 
         // SubId -> ConversationId -> List<Messages>
         HashMap<Integer, HashMap<String, List<MmsSmsMessage>>> conversationLog = new HashMap<>();
-        try (Cursor cursor = ConversationsPerDeviceFetchManager.getCursor()) {
+        try (Cursor cursor = CursorUtils.getConversationsCursor()) {
             while (cursor != null && cursor.moveToNext()) {
                 String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
                 HashMap<Integer, List<MmsSmsMessage>> conversationMap = new HashMap<>();

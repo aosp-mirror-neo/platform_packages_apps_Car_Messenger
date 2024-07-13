@@ -54,6 +54,11 @@ public class CursorUtils {
     @NonNull protected static final String[] THREAD_INFO_PROJECTION = {_ID, RECIPIENT_IDS, READ};
 
     @NonNull
+    private static final String[] CONTENT_CONVERSATIONS_PROJECTION = {
+            SUBSCRIPTION_ID, THREAD_ID,
+    };
+
+    @NonNull
     protected static final String[] CONTENT_SMS_PROJECTION = {
             _ID,
             TYPE,
@@ -86,6 +91,24 @@ public class CursorUtils {
     public enum ContentType {
         SMS,
         MMS
+    }
+
+    /**
+     * Returns a cursor that searches the {@link android.provider.Telephony.MmsSms} database for a
+     * list of all conversations, based on the accountId provided
+     *
+     */
+    @Nullable
+    public static Cursor getConversationsCursor() {
+        Context context = AppFactory.get().getContext();
+        return context.getContentResolver()
+                .query(
+                        CONTENT_CONVERSATIONS_URI,
+                        CONTENT_CONVERSATIONS_PROJECTION,
+                        /* selection= */ null,
+                        /* selectionArgs= */ null,
+                        /* sortOrder= */ null,
+                        /* cancellationSignal= */ null);
     }
 
     /**

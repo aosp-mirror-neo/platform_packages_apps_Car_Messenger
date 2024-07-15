@@ -87,8 +87,7 @@ public class ContactUtils {
     private static String[] getRecipientIds(@NonNull String conversationId) {
         String[] recipientIds = new String[0];
         try (Cursor threadCursor = CursorUtils.getThreadCursor(conversationId)) {
-            if (threadCursor != null) {
-                threadCursor.moveToFirst();
+            if (threadCursor != null && threadCursor.moveToFirst()) {
                 recipientIds = threadCursor
                         .getString(threadCursor.getColumnIndex(RECIPIENT_IDS))
                         .split(RECIPIENT_SPLIT_SEPARATOR);

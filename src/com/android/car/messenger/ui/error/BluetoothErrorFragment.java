@@ -31,7 +31,6 @@ import androidx.fragment.app.Fragment;
 
 import com.android.car.apps.common.UxrButton;
 import com.android.car.messenger.R;
-import com.android.car.messenger.ui.conversationlist.ConversationListFragment;
 import com.android.car.ui.core.CarUi;
 import com.android.car.ui.toolbar.NavButtonMode;
 import com.android.car.ui.toolbar.ToolbarController;
@@ -101,6 +100,6 @@ public class BluetoothErrorFragment extends Fragment {
      * Get unique fragment tag for fragment loading data for user device
      */
     public static String getFragmentTag() {
-        return ConversationListFragment.class.getName();
+        return BluetoothErrorFragment.class.getName();
     }
 }

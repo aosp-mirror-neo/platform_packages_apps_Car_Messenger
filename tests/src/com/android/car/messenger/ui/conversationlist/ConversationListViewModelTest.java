@@ -27,6 +27,7 @@ import android.content.SharedPreferences;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
 import androidx.test.core.app.ApplicationProvider;
@@ -35,6 +36,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.apps.common.testutils.InstantTaskExecutorRule;
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.bluetooth.UserAccount;
+import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.TelephonyDataModel;
 import com.android.car.messenger.util.CarStateListener;
 
@@ -47,6 +49,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
@@ -62,6 +65,8 @@ public class ConversationListViewModelTest {
     @Rule
     public TestRule rule = new InstantTaskExecutorRule();
 
+    @Mock
+    private TelephonyDataModel mDataModel;
     @Mock
     private Application mMockApplication;
     @Mock
@@ -84,16 +89,18 @@ public class ConversationListViewModelTest {
 
         Context context = ApplicationProvider.getApplicationContext();
         CarStateListener carStateListener = new CarStateListener(context);
-        TelephonyDataModel telephonyDataModel = new TelephonyDataModel();
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        mAppFactory = new AppFactoryTestImpl(context, telephonyDataModel,
-                sharedPrefs, carStateListener);
+        mAppFactory = new AppFactoryTestImpl(context, mDataModel, sharedPrefs, carStateListener);
 
         when(mMockApplication.getApplicationContext()).thenReturn(context);
         mConversationListViewModel = new ConversationListViewModel(mMockApplication);
 
         when(mMockUserAccount.getId()).thenReturn(ID_1);
         when(mMockUserAccount2.getId()).thenReturn(ID_2);
+
+        MediatorLiveData<List<Conversation>> mockLiveData = new MediatorLiveData<>();
+        mockLiveData.setValue(new ArrayList<>());
+        when(mDataModel.getConversations(mMockUserAccount)).thenReturn(mockLiveData);
     }
 
     @After

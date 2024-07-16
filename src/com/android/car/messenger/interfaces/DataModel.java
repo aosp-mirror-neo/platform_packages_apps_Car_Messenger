@@ -24,7 +24,6 @@ import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,7 +61,7 @@ public interface DataModel {
      *     id matching a sim in multi-account setting or account id with multi-user account
      */
     @NonNull
-    LiveData<Collection<Conversation>> getConversations(@NonNull UserAccount userAccount);
+    LiveData<List<Conversation>> getConversations(@NonNull UserAccount userAccount);
 
     /**
      * Callback is called when a conversation is removed from the telephony database.

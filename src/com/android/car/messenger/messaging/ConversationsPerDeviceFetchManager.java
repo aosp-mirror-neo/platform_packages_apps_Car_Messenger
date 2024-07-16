@@ -88,16 +88,15 @@ class ConversationsPerDeviceFetchManager {
      * Returns a cursor that searches the {@link android.provider.Telephony.MmsSms} database for a
      * list of all conversations, based on the accountId provided
      *
-     * @param accountId searches for conversations based on id provided
      */
     @Nullable
-    public static Cursor getCursor(int accountId) {
+    public static Cursor getCursor() {
         Context context = AppFactory.get().getContext();
         return context.getContentResolver()
                 .query(
                         URI,
                         PROJECTION,
-                        /* selection= */ SUBSCRIPTION_ID + "=" + accountId,
+                        /* selection= */ null,
                         /* selectionArgs= */ null,
                         /* sortOrder= */ null,
                         /* cancellationSignal= */ null);
@@ -127,7 +126,7 @@ class ConversationsPerDeviceFetchManager {
     private boolean postChangeIfFound(int userAccountId) {
         ArrayList<String> currentConversationIds = new ArrayList<>();
 
-        try (Cursor cursor = getCursor(userAccountId)) {
+        try (Cursor cursor = getCursor()) {
             while (cursor != null && cursor.moveToNext()) {
                 String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
                 currentConversationIds.add(conversationId);

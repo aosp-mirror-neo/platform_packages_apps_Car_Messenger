@@ -17,14 +17,18 @@ package com.android.car.messenger.bluetooth;
 
 import static android.telephony.SubscriptionManager.SUBSCRIPTION_TYPE_LOCAL_SIM;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.LiveData;
 
 import com.android.car.apps.common.log.L;
@@ -65,8 +69,9 @@ import java.util.stream.Stream;
 public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
     private static final String TAG = "CM.UserAccountListLiveData";
 
+    private final Context mContext;
     @NonNull private final SubscriptionManager mSubscriptionManager;
-    private boolean mFilterLocalSim;
+    private final boolean mFilterLocalSim;
 
     @NonNull
     private final OnSubscriptionsChangedListener mOnChangeListener =
@@ -81,10 +86,11 @@ public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
     @Nullable private static UserAccountListLiveData sInstance;
 
     private UserAccountListLiveData() {
-        Context context = AppFactory.get().getContext();
-        mFilterLocalSim = context.getResources().getBoolean(R.bool.filter_local_sim);
-        mSubscriptionManager = context.getSystemService(SubscriptionManager.class);
-        mSubscriptionManager.addOnSubscriptionsChangedListener(mOnChangeListener);
+        mContext = AppFactory.get().getContext();
+        mFilterLocalSim = mContext.getResources().getBoolean(R.bool.filter_local_sim);
+        mSubscriptionManager = mContext.getSystemService(SubscriptionManager.class);
+        mSubscriptionManager.addOnSubscriptionsChangedListener(
+                mContext.getMainExecutor(), mOnChangeListener);
         loadValue();
     }
 
@@ -108,21 +114,14 @@ public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
     }
 
     private void loadValue() {
-        List<UserAccount> accounts =
-                getNullSafeSubscriptionInfoList().stream()
-                        .map(
-                                it -> {
-                                    int subscriptionId = it.getSubscriptionId();
-                                    String iccId = it.getIccId();
-                                    String displayName =
-                                            it.getDisplayName() != null
-                                                    ? it.getDisplayName().toString()
-                                                    : "";
-                                    L.d(TAG, "Found user account subId " + subscriptionId);
-                                    return new UserAccount(
-                                            subscriptionId, displayName, iccId, Instant.now());
-                                })
-                        .collect(Collectors.toList());
+        List<UserAccount> accounts = getNullSafeSubscriptionInfoList().stream().map(it -> {
+            int subscriptionId = it.getSubscriptionId();
+            String iccId = it.getIccId();
+            String displayName = it.getDisplayName() != null ? it.getDisplayName().toString() : "";
+            L.d(TAG, "Found account %s, %s, subId: %s",
+                    it.getDisplayName(), it.getIccId(), subscriptionId);
+            return new UserAccount(subscriptionId, displayName, iccId, Instant.now());
+        }).collect(Collectors.toList());
 
         // get the removed accounts and added accounts.
         List<UserAccount> prevUserAccounts = getValueOrEmpty().mAccounts;
@@ -159,6 +158,22 @@ public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
         Collection<UserAccount> userAccounts = getValueOrEmpty().getAccounts();
         for (UserAccount account : userAccounts) {
             if (iccId.equals(account.getIccId())) {
+                return account;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns User Account with the given subId
+     *
+     * @param subId Maps to the {@link SubscriptionInfo#getSubscriptionId()}
+     */
+    @Nullable
+    public static UserAccount getUserAccount(int subId) {
+        Collection<UserAccount> userAccounts = getValueOrEmpty().getAccounts();
+        for (UserAccount account : userAccounts) {
+            if (subId == account.getId()) {
                 return account;
             }
         }
@@ -216,6 +231,12 @@ public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
     /** Returns null safe subscription info list. The subscriptions will only be type REMOTE_SIM */
     @NonNull
     private List<SubscriptionInfo> getNullSafeSubscriptionInfoList() {
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "READ_PHONE_STATE permission not granted");
+            return new ArrayList<>();
+        }
+
         List<SubscriptionInfo> subscriptionInfos =
                 mSubscriptionManager.getActiveSubscriptionInfoList();
 

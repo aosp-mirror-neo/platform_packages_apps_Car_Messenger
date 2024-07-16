@@ -28,7 +28,7 @@
     <string name="action_mute" msgid="7982388368125401058">"صامت کردن"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"علامت‌گذاری به‌عنوان خوانده‌شده"</string>
     <string name="app_running_msg_notification_title" msgid="3569467829547340722">"سرویس پیام‌رسانی فعال است"</string>
-    <string name="app_running_msg_notification_content" msgid="7088111523632559583">"دریافت «پیام‌ها» در خودرو"</string>
+    <string name="app_running_msg_notification_content" msgid="7088111523632559583">"دریافت «پیام‌نگار» در خودرو"</string>
     <string name="message_channel_name" msgid="8568703344795660393">"کانال پیام"</string>
     <string name="message_channel_description" msgid="4316796171238519904">"سرویس گیرنده پیام تلفن"</string>
     <string name="error_channel_description" msgid="2727225157700797643">"خطا در کانال"</string>

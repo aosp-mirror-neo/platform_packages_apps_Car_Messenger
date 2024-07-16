@@ -67,15 +67,12 @@ public class MessengerServiceTest {
     private TelephonyDataModel mDataModel;
     @Mock
     private MutableLiveData<Conversation> mUnseenLiveData;
-    @Mock
-    private MutableLiveData<String> mRemovedLiveData;
 
     @Before
     public void setup() throws TimeoutException {
         MockitoAnnotations.initMocks(this);
 
         when(mDataModel.getUnseenMessages()).thenReturn(mUnseenLiveData);
-        when(mDataModel.onConversationRemoved()).thenReturn(mRemovedLiveData);
 
         mContext = spy(InstrumentationRegistry.getInstrumentation().getTargetContext());
         mAppFactory = new AppFactoryTestImpl(mContext, mDataModel, null, null);

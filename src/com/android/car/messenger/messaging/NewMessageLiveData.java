@@ -77,7 +77,6 @@ public class NewMessageLiveData extends MediatorLiveData<Conversation> implement
     }
 
     private void onDataChanged() {
-        L.d(TAG, "NewMessageLiveData: telephony database changed");
         for (UserAccount userAccount : mUserAccounts) {
             if (hasProjectionInForeground(userAccount)) {
                 continue;
@@ -86,6 +85,8 @@ public class NewMessageLiveData extends MediatorLiveData<Conversation> implement
                     InMemoryConversationLog.get().getUnseenConversationIndex();
             MmsSmsMessage msg = unseenMap.get(userAccount.getId());
             if (msg != null) {
+                L.d(TAG, "Posting new message convId:%s subId:%s",
+                        msg.getThreadId(), userAccount.getId());
                 postNewMessage(msg, userAccount);
                 break;
             }

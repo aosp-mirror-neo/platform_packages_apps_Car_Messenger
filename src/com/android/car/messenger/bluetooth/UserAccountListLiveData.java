@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Get the UserAccount of the currently active remote bluetooth SIM(s). The records will be sorted
@@ -207,14 +206,14 @@ public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
 
         /** Get removed accounts for this change list */
         @NonNull
-        public Stream<UserAccount> getRemovedAccounts() {
-            return mRemovedAccounts.stream();
+        public Set<UserAccount> getRemovedAccounts() {
+            return mRemovedAccounts;
         }
 
         /** Gets added accounts for this change list */
         @NonNull
-        public Stream<UserAccount> getAddedAccounts() {
-            return mAddedAccounts.stream();
+        public Set<UserAccount> getAddedAccounts() {
+            return mAddedAccounts;
         }
     }
 

@@ -64,15 +64,6 @@ public interface DataModel {
     LiveData<List<Conversation>> getConversations(@NonNull UserAccount userAccount);
 
     /**
-     * Callback is called when a conversation is removed from the telephony database.
-     *
-     * <p>All cached data specific to this conversation should be removed, including notifications,
-     * mute status and more.
-     */
-    @NonNull
-    LiveData<String> onConversationRemoved();
-
-    /**
      * Returns an observable conversation item, holding only unseen messages. since the last known
      * {@link UserAccount#getConnectionTime}.
      *
@@ -86,7 +77,7 @@ public interface DataModel {
      * @param conversationId The unique id for the conversation
      * @param mute The requested mute action, false is to unmute, true is to mute
      */
-    void muteConversation(@NonNull String conversationId, boolean mute);
+    void setConversationMuted(@NonNull String conversationId, boolean mute);
 
     /**
      * Called by UI to mark a conversation as read

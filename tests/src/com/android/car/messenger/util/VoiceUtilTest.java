@@ -207,7 +207,7 @@ public class VoiceUtilTest {
         intent.putExtra(EXTRA_CONVERSATION_KEY, key);
 
         VoiceUtil.mute(intent);
-        verify(mMockDataModel).muteConversation(key, true);
+        verify(mMockDataModel).setConversationMuted(key, true);
     }
 
     @Test

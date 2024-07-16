@@ -280,7 +280,7 @@ public class VoiceUtil {
         if (extras != null) {
             final String conversationKey = extras.getString(EXTRA_CONVERSATION_KEY);
             L.d(TAG, "mute");
-            AppFactory.get().getDataModel().muteConversation(conversationKey, true);
+            AppFactory.get().getDataModel().setConversationMuted(conversationKey, true);
         }
     }
 

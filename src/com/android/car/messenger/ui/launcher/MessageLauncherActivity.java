@@ -72,10 +72,10 @@ public class MessageLauncherActivity extends FragmentActivity implements InsetsC
                         }
                         setContentFragment(fragment, fragmentTag);
                     } else {
-                        fragmentTag = ConversationListFragment.getFragmentTag(userAccount);
+                        fragmentTag = ConversationListFragment.getFragmentTag();
                         fragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
                         if (fragment == null) {
-                            fragment = ConversationListFragment.newInstance(userAccount);
+                            fragment = ConversationListFragment.newInstance();
                         }
                         setContentFragment(fragment, fragmentTag);
                     }

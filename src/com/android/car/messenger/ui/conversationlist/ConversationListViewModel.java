@@ -55,6 +55,14 @@ public class ConversationListViewModel extends AndroidViewModel {
     }
 
     /**
+     * Gets the live data for the currently selected device
+     */
+    @NonNull
+    public LiveData<UserAccount> getCurrentAccount() {
+        return mDataModel.getCurrentAccount();
+    }
+
+    /**
      * Gets an observable {@link UIConversationItem} list for the connected account
      */
     @NonNull
@@ -72,21 +80,15 @@ public class ConversationListViewModel extends AndroidViewModel {
     private LiveData<List<UIConversationItem>> createUIConversationLog(
             @NonNull UserAccount userAccount) {
         MediatorLiveData<List<UIConversationItem>> mutableLiveData = new MediatorLiveData<>();
-        mutableLiveData.addSource(
-                subscribeToConversations(userAccount),
-                pair -> {
-                    CarUxRestrictions uxRestrictions = pair.first;
-                    Collection<Conversation> list = pair.second;
-                    List<UIConversationItem> data =
-                            list.stream()
-                                    .map(
-                                            conversation ->
-                                                    UIConversationItemConverter
-                                                            .convertToUIConversationItem(
-                                                                    conversation, uxRestrictions))
-                                    .collect(Collectors.toList());
-                    mutableLiveData.postValue(data);
-                });
+        mutableLiveData.addSource(subscribeToConversations(userAccount), pair -> {
+            CarUxRestrictions uxRestrictions = pair.first;
+            Collection<Conversation> list = pair.second;
+            List<UIConversationItem> data = list.stream()
+                    .map(conversation -> UIConversationItemConverter.convertToUIConversationItem(
+                            conversation, uxRestrictions))
+                    .collect(Collectors.toList());
+            mutableLiveData.postValue(data);
+        });
         return mutableLiveData;
     }
 

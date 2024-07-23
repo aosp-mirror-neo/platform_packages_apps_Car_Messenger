@@ -171,7 +171,9 @@ public class ConversationItemViewHolder extends RecyclerView.ViewHolder {
         mMuteActionButton.setOnClickListener(
                 view -> {
                     boolean mute = !uiData.isMuted();
-                    mDataModel.muteConversation(uiData.getConversationId(), mute);
+                    uiData.mIsMuted = mute;
+                    updateMuteButton(mute);
+                    mDataModel.setConversationMuted(uiData.getConversationId(), mute);
                     if (mute) {
                         NotificationHandler.removeNotification(uiData.getConversationId());
                     }

@@ -18,12 +18,13 @@ package com.android.car.messenger.interfaces;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * This interface allows the UI to communicate with the host app. The methods provides the data and
@@ -35,11 +36,17 @@ import java.util.Collection;
 public interface DataModel {
 
     /**
+     * The currently selected user account.
+     */
+    @NonNull
+    MutableLiveData<UserAccount> getCurrentAccount();
+
+    /**
      * Get list of accounts. Here an account can refer to actual accounts or separate user accounts.
      * Data will be separated in the UI by user accounts.
      */
     @NonNull
-    LiveData<Collection<UserAccount>> getAccounts();
+    LiveData<List<UserAccount>> getAccounts();
 
     /**
      * Call this to reload data. This is useful when resuming an activity, to ensure no account
@@ -54,16 +61,7 @@ public interface DataModel {
      *     id matching a sim in multi-account setting or account id with multi-user account
      */
     @NonNull
-    LiveData<Collection<Conversation>> getConversations(@NonNull UserAccount userAccount);
-
-    /**
-     * Callback is called when a conversation is removed from the telephony database.
-     *
-     * <p>All cached data specific to this conversation should be removed, including notifications,
-     * mute status and more.
-     */
-    @NonNull
-    LiveData<String> onConversationRemoved();
+    LiveData<List<Conversation>> getConversations(@NonNull UserAccount userAccount);
 
     /**
      * Returns an observable conversation item, holding only unseen messages. since the last known
@@ -79,7 +77,7 @@ public interface DataModel {
      * @param conversationId The unique id for the conversation
      * @param mute The requested mute action, false is to unmute, true is to mute
      */
-    void muteConversation(@NonNull String conversationId, boolean mute);
+    void setConversationMuted(@NonNull String conversationId, boolean mute);
 
     /**
      * Called by UI to mark a conversation as read

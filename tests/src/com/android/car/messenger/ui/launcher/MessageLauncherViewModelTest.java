@@ -68,7 +68,7 @@ public class MessageLauncherViewModelTest {
     @Mock
     private LifecycleOwner mMockLifecycleOwner;
     @Mock
-    private Observer<List<UserAccount>> mMockObserver;
+    private Observer<List<UserAccount>> mListObserver;
 
     @Before
     public void setup() {
@@ -96,7 +96,7 @@ public class MessageLauncherViewModelTest {
         when(mMockDataModel.getAccounts()).thenReturn(new MutableLiveData<>(userAccounts));
 
         LiveData<List<UserAccount>> accounts = mMessageLauncherViewModel.getAccounts();
-        accounts.observeForever(mMockObserver);
-        assertThat(accounts.getValue()).containsExactly(acc1);
+        accounts.observeForever(mListObserver);
+        assertThat(accounts.getValue()).containsExactly(acc1, acc2);
     }
 }

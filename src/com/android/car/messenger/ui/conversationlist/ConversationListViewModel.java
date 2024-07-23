@@ -26,11 +26,9 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.Transformations;
 
 import com.android.car.apps.common.log.L;
-import com.android.car.messenger.bluetooth.BluetoothStateLiveData;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
@@ -50,19 +48,10 @@ public class ConversationListViewModel extends AndroidViewModel {
 
     @Nullable private UserAccount mUserAccount;
     @Nullable private LiveData<List<UIConversationItem>> mUIConversationLogLiveData;
-    private LiveData<Integer> mBluetoothStateLiveData;
-    private Observer mBluetoothStateObserver;
 
     public ConversationListViewModel(@NonNull Application application) {
         super(application);
         mDataModel = AppFactory.get().getDataModel();
-        mBluetoothStateLiveData = new BluetoothStateLiveData(application.getApplicationContext());
-        mBluetoothStateObserver = o -> L.i(TAG, "BluetoothState changed");
-        mBluetoothStateLiveData.observeForever(mBluetoothStateObserver);
-    }
-
-    public LiveData<Integer> getBluetoothStateLiveData() {
-        return mBluetoothStateLiveData;
     }
 
     /**
@@ -103,7 +92,7 @@ public class ConversationListViewModel extends AndroidViewModel {
 
     private LiveData<Pair<CarUxRestrictions, Collection<Conversation>>> subscribeToConversations(
             @NonNull UserAccount userAccount) {
-        final LiveData<Collection<Conversation>> liveData =
+        final LiveData<List<Conversation>> liveData =
                 mDataModel.getConversations(userAccount);
         return Transformations.switchMap(
                 AppFactory.get().getCarStateListener().getUxrRestrictions(),

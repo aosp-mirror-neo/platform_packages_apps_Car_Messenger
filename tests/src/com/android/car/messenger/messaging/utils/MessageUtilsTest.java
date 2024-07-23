@@ -46,29 +46,38 @@ import java.util.List;
 @RunWith(AndroidJUnit4.class)
 public class MessageUtilsTest {
 
-    private static final int MESSAGE_LIMIT = 10;
+    private static final int CURRENT_DEVICE_ID = 1;
 
     @Test
-    public void testGetMessages() {
+    public void testGetRawMessages() {
         MmsSmsMessage msg1 = createMessage(
                 /* id= */ "1",
+                /* subId= */ CURRENT_DEVICE_ID,
                 /* timestamp= */ 1,
                 /* body= */ "",
                 /* type= */ MessageType.MESSAGE_TYPE_SENT,
                 /* isRead= */ true);
         MmsSmsMessage msg2 = createMessage(
                 /* id= */ "2",
+                /* subId= */ 2,
                 /* timestamp= */ 2,
                 /* body= */ "text2",
                 /* type= */ MessageType.MESSAGE_TYPE_ALL,
                 /* isRead= */ true);
         MmsSmsMessage msg3 = createMessage(
                 /* id= */ "3",
+                /* subId= */ CURRENT_DEVICE_ID,
                 /* timestamp= */ 3,
                 /* body= */ "text3",
                 /* type= */ MessageType.MESSAGE_TYPE_INBOX,
                 /* isRead= */ false);
-
+        MmsSmsMessage msg4 = createMessage(
+                /* id= */ "4",
+                /* subId= */ CURRENT_DEVICE_ID,
+                /* timestamp= */ 4,
+                /* body= */ "text4",
+                /* type= */ MessageType.MESSAGE_TYPE_INBOX,
+                /* isRead= */ false);
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
                 .spyStatic(MmsUtils.class)
@@ -83,17 +92,21 @@ public class MessageUtilsTest {
             doReturn(true).when(() -> MmsUtils.isMms(mmsCursor));
             doReturn(false).when(() -> MmsUtils.isMms(smsCursor));
             doReturn(msg2, msg1).when(() -> MmsUtils.parseMms(any(), eq(mmsCursor)));
-            doReturn(msg3).when(() -> SmsUtils.parseSms(smsCursor));
+            doReturn(msg3, msg4).when(() -> SmsUtils.parseSms(smsCursor));
             when(smsCursor.moveToFirst()).thenReturn(true);
-            when(smsCursor.moveToNext()).thenReturn(false);
+            when(smsCursor.moveToNext()).thenReturn(true, false);
             when(mmsCursor.moveToFirst()).thenReturn(true);
             when(mmsCursor.moveToNext()).thenReturn(true, false);
 
-            // Tests that empty messages are skipped and returned messages are in descending order
-            List<Message> messages = MessageUtils.getMessages(MESSAGE_LIMIT, mmsCursor, smsCursor);
-            assertThat(messages).hasSize(2);
-            assertThat(messages.get(0).getText()).isEqualTo("text3");
-            assertThat(messages.get(1).getText()).isEqualTo("text2");
+            // Tests the following:
+            // 1. Empty messages are skipped
+            // 2. Returned messages are in descending order
+            // 3. Only return messages from the device with CURRENT_DEVICE_ID
+            List<MmsSmsMessage> messages = MessageUtils.getRawMessages(mmsCursor, smsCursor);
+            assertThat(messages).hasSize(3);
+            assertThat(messages.get(0).getBody()).isEqualTo("text4");
+            assertThat(messages.get(1).getBody()).isEqualTo("text3");
+            assertThat(messages.get(2).getBody()).isEqualTo("text2");
         } finally {
             session.finishMocking();
         }
@@ -114,14 +127,15 @@ public class MessageUtilsTest {
     }
 
     private MmsSmsMessage createMessage(
-            String id, long timestamp, String body, int type, boolean isRead) {
-        MmsSmsMessage message = new MmsSmsMessage();
-        message.mId = id;
-        message.mThreadId = Integer.parseInt(id);
-        message.mType = type;
-        message.mRead = isRead;
-        message.mDate = Instant.ofEpochMilli(timestamp);
-        message.mBody = body;
-        return message;
+            String id, int subId, long timestamp, String body, int type, boolean isRead) {
+        return new MmsSmsMessage.Builder()
+                .setId(id)
+                .setSubscriptionId(subId)
+                .setThreadId(Integer.parseInt(id))
+                .setType(type)
+                .setRead(isRead)
+                .setDate(Instant.ofEpochMilli(timestamp))
+                .setBody(body)
+                .build();
     }
 }

@@ -21,6 +21,7 @@ import static android.provider.Telephony.BaseMmsColumns.MESSAGE_BOX;
 import static android.provider.Telephony.MmsSms.CONTENT_CONVERSATIONS_URI;
 import static android.provider.Telephony.TextBasedSmsColumns.ADDRESS;
 import static android.provider.Telephony.TextBasedSmsColumns.BODY;
+import static android.provider.Telephony.TextBasedSmsColumns.SEEN;
 import static android.provider.Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID;
 import static android.provider.Telephony.TextBasedSmsColumns.THREAD_ID;
 import static android.provider.Telephony.TextBasedSmsColumns.TYPE;
@@ -53,21 +54,61 @@ public class CursorUtils {
     @NonNull protected static final String[] THREAD_INFO_PROJECTION = {_ID, RECIPIENT_IDS, READ};
 
     @NonNull
-    protected static final String[] CONTENT_CONVERSATION_PROJECTION = {
-        _ID, TYPE, DATE, READ, CONTENT_TYPE, BODY, ADDRESS, THREAD_ID, SUBSCRIPTION_ID, MESSAGE_BOX
+    private static final String[] CONTENT_CONVERSATIONS_PROJECTION = {
+            SUBSCRIPTION_ID, THREAD_ID,
+    };
+
+    @NonNull
+    protected static final String[] CONTENT_SMS_PROJECTION = {
+            _ID,
+            TYPE,
+            DATE,
+            READ,
+            SEEN,
+            BODY,
+            ADDRESS,
+            THREAD_ID,
+            SUBSCRIPTION_ID
+    };
+
+    @NonNull
+    protected static final String[] CONTENT_MMS_PROJECTION = {
+            _ID,
+            DATE,
+            READ,
+            SEEN,
+            CONTENT_TYPE,
+            THREAD_ID,
+            SUBSCRIPTION_ID,
+            MESSAGE_BOX
     };
 
     /** Provides the default sort order for items in database. Default is DESC order by Date. */
     @NonNull
     public static final String DEFAULT_SORT_ORDER = Telephony.TextBasedSmsColumns.DATE + " DESC";
 
-    private static final String MMS_QUERY = CONTENT_TYPE + " = '" + MMS_CONTENT_TYPE + "' ";
-    private static final String SMS_QUERY = CONTENT_TYPE + " IS NULL ";
-
     /** This enum is used for describing the type of message being fetched by a cursor */
     public enum ContentType {
         SMS,
         MMS
+    }
+
+    /**
+     * Returns a cursor that searches the {@link android.provider.Telephony.MmsSms} database for a
+     * list of all conversations, based on the accountId provided
+     *
+     */
+    @Nullable
+    public static Cursor getConversationsCursor() {
+        Context context = AppFactory.get().getContext();
+        return context.getContentResolver()
+                .query(
+                        CONTENT_CONVERSATIONS_URI,
+                        CONTENT_CONVERSATIONS_PROJECTION,
+                        /* selection= */ null,
+                        /* selectionArgs= */ null,
+                        /* sortOrder= */ null,
+                        /* cancellationSignal= */ null);
     }
 
     /**
@@ -89,32 +130,40 @@ public class CursorUtils {
      * Get the message cursor in descending order for
      *
      * @param conversationId The conversation or thread id for the conversation
-     * @param limit The maximum number of message rows to fetch
      */
     @Nullable
-    public static Cursor getMessagesCursor(@NonNull String conversationId, int limit,
+    public static Cursor getMessagesCursor(@NonNull String conversationId,
             @NonNull ContentType contentType) {
         Context context = AppFactory.get().getContext();
         ContentResolver contentResolver = context.getContentResolver();
 
-        String query = contentType == ContentType.MMS ? MMS_QUERY : SMS_QUERY;
+        String query = THREAD_ID + " = ?";
+        if (contentType == ContentType.MMS) {
+            query += " AND " + CONTENT_TYPE + " = '" + MMS_CONTENT_TYPE + "'";
+        }
+
+        String[] projection = contentType == ContentType.MMS
+                ? CONTENT_MMS_PROJECTION
+                : CONTENT_SMS_PROJECTION;
 
         return contentResolver.query(
-                getConversationUri(conversationId),
-                CONTENT_CONVERSATION_PROJECTION,
+                getContentUri(contentType),
+                projection,
                 query,
-                /* selectionArgs= */ null,
-                DEFAULT_SORT_ORDER + " LIMIT " + limit);
+                new String[] {conversationId},
+                DEFAULT_SORT_ORDER);
+    }
+
+    private static Uri getContentUri(ContentType contentType) {
+        return contentType == ContentType.MMS
+                ? Telephony.Mms.Inbox.CONTENT_URI
+                : Telephony.Sms.Inbox.CONTENT_URI;
     }
 
     /** Gets the Uri for the message with specified messageId */
     @NonNull
-    public static Uri getMessagesUri(@NonNull String messageId, @NonNull ContentType contentType) {
-        Uri uri = contentType == ContentType.MMS
-                ? Telephony.Mms.Inbox.CONTENT_URI
-                : Telephony.Sms.Inbox.CONTENT_URI;
-
-        return uri.buildUpon().appendPath(messageId).build();
+    public static Uri getMessageUri(@NonNull String messageId, @NonNull ContentType contentType) {
+        return getContentUri(contentType).buildUpon().appendPath(messageId).build();
     }
 
     /** Gets the Conversation Uri for the Conversation with specified conversationId */
@@ -127,13 +176,6 @@ public class CursorUtils {
     @Nullable
     public static Cursor simpleQuery(@NonNull Context context, @NonNull Uri uri) {
         return context.getContentResolver().query(uri, null, null, null, null);
-    }
-
-    /** Returns a cursor query given a uri and projection */
-    @Nullable
-    public static Cursor simpleQueryWithProjection(
-            @NonNull Context context, @NonNull Uri uri, @Nullable String[] projection) {
-        return context.getContentResolver().query(uri, projection, null, null, null);
     }
 
     /** Returns a cursor query given a uri and selection */

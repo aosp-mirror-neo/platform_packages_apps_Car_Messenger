@@ -13,50 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.car.messenger.ui.launcher;
 
 import android.app.Application;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Transformations;
+import androidx.lifecycle.Observer;
 
+import com.android.car.apps.common.log.L;
+import com.android.car.messenger.bluetooth.BluetoothStateLiveData;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /** View model for MessageLauncherActivity */
 public class MessageLauncherViewModel extends AndroidViewModel {
-    @NonNull private final DataModel mDataSource;
-    @Nullable private LiveData<List<UserAccount>> mAccountsLiveData;
+    private static final String TAG = "CM.MessageLauncherViewModel";
 
-    // We currently only support the primary account until multi-account support is added
-    private static final int DEVICE_LIMIT = 1;
+    @NonNull private final DataModel mDataSource;
+
+    private LiveData<Integer> mBluetoothStateLiveData;
+    private Observer mBluetoothStateObserver;
 
     public MessageLauncherViewModel(@NonNull Application application) {
         super(application);
         mDataSource = AppFactory.get().getDataModel();
+        mBluetoothStateLiveData = new BluetoothStateLiveData(application.getApplicationContext());
+        mBluetoothStateObserver = o -> L.i(TAG, "BluetoothState changed");
+        mBluetoothStateLiveData.observeForever(mBluetoothStateObserver);
+    }
+
+    public LiveData<Integer> getBluetoothStateLiveData() {
+        return mBluetoothStateLiveData;
+    }
+
+    @NonNull
+    public LiveData<UserAccount> getCurrentAccount() {
+        return mDataSource.getCurrentAccount();
     }
 
     /** Get observable data with list of accounts/user accounts */
     @NonNull
     public LiveData<List<UserAccount>> getAccounts() {
-        if (mAccountsLiveData == null) {
-            mAccountsLiveData = getAccountList();
-        }
-        return mAccountsLiveData;
+        return mDataSource.getAccounts();
     }
 
-    private LiveData<List<UserAccount>> getAccountList() {
-        return Transformations.map(
-                mDataSource.getAccounts(),
-                accountList ->
-                        accountList.stream().limit(DEVICE_LIMIT).collect(Collectors.toList()));
-    }
 }

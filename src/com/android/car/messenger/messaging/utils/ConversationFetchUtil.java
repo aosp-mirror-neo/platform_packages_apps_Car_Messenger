@@ -17,7 +17,6 @@
 package com.android.car.messenger.messaging.utils;
 
 import static java.lang.Math.min;
-import static java.util.Comparator.comparingLong;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -29,14 +28,15 @@ import androidx.annotation.NonNull;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
-import com.android.car.apps.common.log.L;
 import com.android.car.messenger.MessageConstants;
 import com.android.car.messenger.R;
+import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.ui.utils.AvatarUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,35 +52,40 @@ public class ConversationFetchUtil {
     private ConversationFetchUtil() {}
 
     /**
-     * Fetches a complete conversation based on a provided conversation id
+     * Fetches complete conversations based on a provided conversation id.
      *
-     * Messages are ordered in ascending order, from oldest to latest
+     * In multi-sim scenarios, messages from the same sender received on different local sims will
+     * share the same conversationId. On the car, we want these threads to be distinct.
+     *
+     * Returns a mapping of subscriptionId to list of messages.
      */
-    public static Conversation fetchCompleteConversation(@NonNull String conversationId) {
-        L.d(TAG, "Fetching complete conversation " + conversationId);
-
-        Context context = AppFactory.get().getContext();
-        int messageLimit = context.getResources().getInteger(R.integer.conversation_size_limit);
-        Conversation.Builder conversationBuilder = initConversationBuilder(conversationId);
-
-        List<Conversation.Message> messages;
+    public static HashMap<Integer, List<MmsSmsMessage>> fetchConversationThread(
+            @NonNull String conversationId) {
+        List<MmsSmsMessage> messages;
         try (Cursor mmsCursor = getMmsCursor(conversationId);
              Cursor smsCursor = getSmsCursor(conversationId)) {
             // message list sorted by date desc (latest to oldest)
-            messages = MessageUtils.getMessages(messageLimit, mmsCursor, smsCursor);
+            messages = MessageUtils.getRawMessages(mmsCursor, smsCursor);
         }
 
-        List<Conversation.Message> messagesToRead = MessageUtils.getUnreadMessages(messages);
-        int unreadCount = messagesToRead.size();
+        HashMap<Integer, List<MmsSmsMessage>> conversationBuilderMap = new HashMap<>();
+        for (MmsSmsMessage message : messages) {
+            int subId = message.getSubscriptionId();
 
-        // sort ascending
-        messages.sort(comparingLong(Conversation.Message::getTimestamp));
-        conversationBuilder.setMessages(messages).setUnreadCount(unreadCount);
-        return conversationBuilder.build();
+            if (!conversationBuilderMap.containsKey(subId)) {
+                conversationBuilderMap.put(subId, new ArrayList<>(List.of(message)));
+            } else {
+                List<MmsSmsMessage> list = conversationBuilderMap.get(subId);
+                list.add(message);
+            }
+        }
+
+        return conversationBuilderMap;
     }
 
     @NonNull
-    private static Conversation.Builder initConversationBuilder(@NonNull String conversationId) {
+    public static Conversation.Builder initConversationBuilder(
+            @NonNull String conversationId, @NonNull UserAccount userAccount) {
         Context context = AppFactory.get().getContext();
         String userName = ContactUtils.DRIVER_NAME;
         Conversation.Builder builder =
@@ -89,6 +94,7 @@ public class ConversationFetchUtil {
         List<Person> participants =
                 fetchParticipants(
                         conversationId,
+                        userAccount,
                         (names, icons) -> {
                             builder.setConversationTitle(formatConversationTitle(names));
                             Bitmap bitmap = AvatarUtil.createGroupAvatar(context, icons);
@@ -135,12 +141,14 @@ public class ConversationFetchUtil {
      */
     private static List<Person> fetchParticipants(
             @NonNull String conversationId,
+            @NonNull UserAccount userAccount,
             @NonNull BiConsumer<List<CharSequence>, List<Bitmap>> processNamesAndIcons) {
         List<CharSequence> participantNames = new ArrayList<>();
         List<Bitmap> participantIcons = new ArrayList<>();
         List<Person> participants =
                 ContactUtils.getRecipients(
                         conversationId,
+                        userAccount,
                         (name, bitmap) -> {
                             participantNames.add(name);
                             participantIcons.add(bitmap);
@@ -158,16 +166,10 @@ public class ConversationFetchUtil {
     }
 
     private static Cursor getMmsCursor(@NonNull String conversationId) {
-        Context context = AppFactory.get().getContext();
-        int messageLimit = context.getResources().getInteger(R.integer.conversation_size_limit);
-        return CursorUtils.getMessagesCursor(
-                conversationId, messageLimit, CursorUtils.ContentType.MMS);
+        return CursorUtils.getMessagesCursor(conversationId, CursorUtils.ContentType.MMS);
     }
 
     private static Cursor getSmsCursor(@NonNull String conversationId) {
-        Context context = AppFactory.get().getContext();
-        int messageLimit = context.getResources().getInteger(R.integer.conversation_size_limit);
-        return CursorUtils.getMessagesCursor(
-                conversationId, messageLimit, CursorUtils.ContentType.SMS);
+        return CursorUtils.getMessagesCursor(conversationId, CursorUtils.ContentType.SMS);
     }
 }

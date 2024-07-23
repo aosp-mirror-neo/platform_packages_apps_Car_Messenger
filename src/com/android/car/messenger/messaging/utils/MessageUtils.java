@@ -20,7 +20,6 @@ import static com.android.car.messenger.common.Conversation.Message.MessageStatu
 import static com.android.car.messenger.common.Conversation.Message.MessageStatus.MESSAGE_STATUS_READ;
 import static com.android.car.messenger.common.Conversation.Message.MessageStatus.MESSAGE_STATUS_UNREAD;
 
-import static java.lang.Math.min;
 import static java.util.Comparator.comparingLong;
 
 import android.content.Context;
@@ -32,6 +31,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.Person;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.messenger.bluetooth.UserAccount;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.common.Conversation.Message;
 import com.android.car.messenger.common.Conversation.Message.MessageStatus;
@@ -51,12 +52,12 @@ public final class MessageUtils {
     /**
      * Returns all messages in the given cursors in descending order.
      *
-     * @param limit The maximum number of messages
      * @param messageCursors The messageCursors of messages in descending order
      */
     @NonNull
-    public static List<Message> getMessages(int limit, @Nullable Cursor... messageCursors) {
-        List<Message> messages = new ArrayList<>();
+    public static List<MmsSmsMessage> getRawMessages(@Nullable Cursor... messageCursors) {
+        List<MmsSmsMessage> messages = new ArrayList<>();
+
         for (Cursor cursor : messageCursors) {
             MessageUtils.forEachDesc(
                     cursor,
@@ -65,8 +66,27 @@ public final class MessageUtils {
                         return true;
                     });
         }
+
+        messages.sort(comparingLong(MmsSmsMessage::getTimestamp).reversed());
+        return messages;
+    }
+
+    /**
+     * Converts raw messages to a list of Conversation.Message
+     *
+     * @param rawMessages The parsed messages in descending order
+     */
+    @NonNull
+    public static List<Conversation.Message> getMessages(List<MmsSmsMessage> rawMessages) {
+        List<Conversation.Message> messages = new ArrayList<>();
+
+        MessageUtils.forEachDesc(rawMessages,
+                message -> {
+                    messages.add(message);
+                    return true;
+                });
         messages.sort(comparingLong(Message::getTimestamp).reversed());
-        return messages.subList(0, min(limit, messages.size()));
+        return messages;
     }
 
     /**
@@ -96,23 +116,23 @@ public final class MessageUtils {
      *     to continue parsing the cursor or false to return.
      */
     private static void forEachDesc(
-            @Nullable Cursor messageCursor, @NonNull Function<Message, Boolean> processor) {
+            @Nullable Cursor messageCursor,
+            @NonNull Function<MmsSmsMessage, Boolean> processor) {
         if (messageCursor == null || !messageCursor.moveToFirst()) {
             return;
         }
         Context context = AppFactory.get().getContext();
         boolean moveToNext = true;
-        boolean hasBeenRepliedTo = false;
         do {
-            Message message;
+            MmsSmsMessage message;
             try {
-                message = parseMessageAtPoint(context, messageCursor, hasBeenRepliedTo);
+                message = parseMessageAtPoint(
+                        context, messageCursor);
             } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                L.d(TAG, "Message was not able to be parsed. Skipping.");
+                L.w(TAG, "Message was not able to be parsed. Skipping.", e);
                 continue;
             }
-            if (message.getText().trim().isEmpty()) {
+            if (message.getBody().trim().isEmpty()) {
                 // There are occasions where a user may send
                 // a text message plus an image or audio and
                 // bluetooth will post two messages to the database (b/182834412),
@@ -122,36 +142,62 @@ public final class MessageUtils {
                 L.d(TAG, "Message is blank. Skipped. ");
                 continue;
             }
+            moveToNext = processor.apply(message);
+        } while (messageCursor.moveToNext() && moveToNext);
+    }
+
+    private static void forEachDesc(
+            List<MmsSmsMessage> rawMessages,
+            @NonNull Function<Conversation.Message, Boolean> processor) {
+        Context context = AppFactory.get().getContext();
+        boolean moveToNext;
+        boolean hasBeenRepliedTo = false;
+        for (MmsSmsMessage rawMessage : rawMessages) {
+            Message message = parseRawMessageAtPoint(context, rawMessage, hasBeenRepliedTo);
             if (message.getMessageType() == MessageType.MESSAGE_TYPE_SENT) {
                 hasBeenRepliedTo = true;
             }
             moveToNext = processor.apply(message);
-        } while (messageCursor.moveToNext() && moveToNext);
+            if (!moveToNext) {
+                break;
+            }
+        }
     }
 
     /**
      * Parses message at the point in cursor.
      *
      * @throws IllegalArgumentException if desired columns are missing.
-     * @see CursorUtils#CONTENT_CONVERSATION_PROJECTION
+     * @see CursorUtils#CONTENT_SMS_PROJECTION
+     * @see CursorUtils#CONTENT_MMS_PROJECTION
      */
     @NonNull
-    private static Conversation.Message parseMessageAtPoint(
-            @NonNull Context context, @NonNull Cursor cursor, boolean userHasReplied) {
+    private static MmsSmsMessage parseMessageAtPoint(
+            @NonNull Context context,
+            @NonNull Cursor cursor) {
         MmsSmsMessage msg =
                 MmsUtils.isMms(cursor)
                         ? MmsUtils.parseMms(context, cursor)
                         : SmsUtils.parseSms(cursor);
-        Person person =
-                ContactUtils.getPerson(context, msg.mPhoneNumber, /* processParticipant= */ null);
+        return msg;
+    }
+
+    @NonNull
+    private static Conversation.Message parseRawMessageAtPoint(
+            @NonNull Context context,
+            MmsSmsMessage msg,
+            boolean userHasReplied) {
+        UserAccount userAccount = UserAccountListLiveData.getUserAccount(msg.getSubscriptionId());
+        Person person = ContactUtils.getPerson(context, msg.getPhoneNumber(), userAccount, null);
         Conversation.Message message =
-                new Conversation.Message(msg.mBody, msg.mDate.toEpochMilli(), person);
-        if (msg.mType == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
+                new Conversation.Message(msg.getBody(), msg.getTimestamp(), person);
+        if (msg.getType() == TextBasedSmsColumns.MESSAGE_TYPE_SENT) {
             message.setMessageType(MessageType.MESSAGE_TYPE_SENT);
             message.setMessageStatus(MESSAGE_STATUS_NONE);
         } else {
-            int status =
-                    (msg.mRead || userHasReplied) ? MESSAGE_STATUS_READ : MESSAGE_STATUS_UNREAD;
+            int status = (msg.isRead() || userHasReplied)
+                    ? MESSAGE_STATUS_READ
+                    : MESSAGE_STATUS_UNREAD;
             message.setMessageType(MessageType.MESSAGE_TYPE_INBOX);
             message.setMessageStatus(status);
         }

@@ -16,37 +16,26 @@
 package com.android.car.messenger.ui.conversationlist;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.car.apps.common.log.L;
-import com.android.car.apps.common.util.LiveDataFunctions;
 import com.android.car.messenger.R;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.interfaces.BluetoothState;
 import com.android.car.messenger.util.VoiceUtil;
 import com.android.car.ui.toolbar.MenuItem;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /** Fragment for Message History/Conversation Metadata List */
 public class ConversationListFragment extends MessageListBaseFragment
         implements ConversationItemAdapter.OnConversationItemClickListener {
     private static final String TAG = "CM.ConversationListFragment";
-
-    @NonNull
-    private static final String BLUETOOTH_SETTING_ACTION = "android.settings.BLUETOOTH_SETTINGS";
-
-    @NonNull
-    private static final String BLUETOOTH_SETTING_CATEGORY = "android.intent.category.DEFAULT";
 
     @NonNull private static final String KEY_USER_ACCOUNT = "KEY_USER_ACCOUNT";
     @Nullable private ConversationItemAdapter mConversationItemAdapter;
@@ -59,10 +48,7 @@ public class ConversationListFragment extends MessageListBaseFragment
             mUserAccount = getArguments().getParcelable(KEY_USER_ACCOUNT);
         }
 
-        if (mUserAccount == null) {
-            handleBluetoothDisconnected();
-            return;
-        }
+        setMenuItems();
 
         // Don't recreate the adapter if we already have one, so that the list items
         // will display immediately upon the view being recreated.
@@ -72,48 +58,20 @@ public class ConversationListFragment extends MessageListBaseFragment
                     new ConversationItemAdapter(/* onConversationItemClickListener= */ this);
         }
         getRecyclerView().setAdapter(mConversationItemAdapter);
+
         ConversationListViewModel viewModel =
                 new ViewModelProvider(getActivity()).get(ConversationListViewModel.class);
-        LiveData<Integer> bluetoothStateLiveData = viewModel.getBluetoothStateLiveData();
-        LiveData<List<UIConversationItem>> conversationLiveData =
-                viewModel.getConversations(mUserAccount);
+        viewModel.getConversations(mUserAccount)
+                .observe(this, conversationLog -> {
+                    if (conversationLog == null || conversationLog.isEmpty()) {
+                        mLoadingFrameLayout.showEmpty(R.string.no_messages);
+                    } else {
+                        mConversationItemAdapter.setConversationLogItems(conversationLog);
+                        mLoadingFrameLayout.showContent();
+                    }
+                    setMenuItems();
+                });
 
-        LiveDataFunctions.pair(bluetoothStateLiveData, conversationLiveData)
-                        .observe(this, pair -> {
-                            int bluetoothState = pair.first;
-                            List<UIConversationItem> conversationLog = pair.second;
-                            if (bluetoothState != BluetoothState.ENABLED) {
-                                handleBluetoothDisconnected();
-                            } else if (conversationLog == null || conversationLog.isEmpty()) {
-                                mLoadingFrameLayout.showEmpty(R.string.no_messages);
-                                setMenuItems();
-                            } else {
-                                mConversationItemAdapter.setConversationLogItems(conversationLog);
-                                mLoadingFrameLayout.showContent();
-                                setMenuItems();
-                            }
-                        });
-
-    }
-
-    private void handleBluetoothDisconnected() {
-        Intent launchIntent = new Intent();
-        launchIntent.setAction(BLUETOOTH_SETTING_ACTION);
-        launchIntent.addCategory(BLUETOOTH_SETTING_CATEGORY);
-        mLoadingFrameLayout.showError(
-                R.string.bluetooth_disconnected,
-                R.string.connect_bluetooth_button_text,
-                v -> startActivity(launchIntent),
-                true);
-        removeMenuItems();
-    }
-
-    private void removeMenuItems() {
-        Activity activity = getActivity();
-        if (activity == null || mToolbar == null) {
-            return;
-        }
-        mToolbar.setMenuItems(new ArrayList<>());
     }
 
     private void setMenuItems() {

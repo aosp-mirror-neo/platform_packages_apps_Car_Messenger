@@ -125,11 +125,13 @@ class ConversationsPerDeviceFetchManager {
      * @return true if a change was posted and false, otherwise.
      */
     private boolean postChangeIfFound(int userAccountId) {
-        Cursor cursor = getCursor(userAccountId);
         ArrayList<String> currentConversationIds = new ArrayList<>();
-        while (cursor != null && cursor.moveToNext()) {
-            String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
-            currentConversationIds.add(conversationId);
+
+        try (Cursor cursor = getCursor(userAccountId)) {
+            while (cursor != null && cursor.moveToNext()) {
+                String conversationId = cursor.getString(cursor.getColumnIndex(THREAD_ID));
+                currentConversationIds.add(conversationId);
+            }
         }
 
         // get updated changes

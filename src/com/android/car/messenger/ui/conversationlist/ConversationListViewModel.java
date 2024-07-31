@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.android.car.apps.common.log.L;
@@ -66,7 +67,10 @@ public class ConversationListViewModel extends AndroidViewModel {
      * Gets an observable {@link UIConversationItem} list for the connected account
      */
     @NonNull
-    public LiveData<List<UIConversationItem>> getConversations(@NonNull UserAccount userAccount) {
+    public LiveData<List<UIConversationItem>> getConversations(@Nullable UserAccount userAccount) {
+        if (userAccount == null) {
+            return new MutableLiveData<>(null);
+        }
         if (mUserAccount != null
                 && mUserAccount.getId() == userAccount.getId()
                 && mUIConversationLogLiveData != null) {

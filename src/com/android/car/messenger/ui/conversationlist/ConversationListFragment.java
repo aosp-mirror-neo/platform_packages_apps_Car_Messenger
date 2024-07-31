@@ -60,6 +60,7 @@ public class ConversationListFragment extends MessageListBaseFragment
         ConversationListViewModel viewModel =
                 new ViewModelProvider(getActivity()).get(ConversationListViewModel.class);
         mUserAccountLiveData = viewModel.getCurrentAccount();
+        mUserAccountLiveData.observeForever(acc -> {});
 
         Transformations.switchMap(mUserAccountLiveData, viewModel::getConversations)
                 .observe(this, conversationLog -> {

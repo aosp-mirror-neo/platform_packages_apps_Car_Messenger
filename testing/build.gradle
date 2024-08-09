@@ -16,6 +16,7 @@
 
 plugins {
     id 'com.android.library'
+    id 'buildSrc.jdk.jdk8'
 }
 
 android {
@@ -26,11 +27,6 @@ android {
         targetSdkVersion gradle.ext.aaosTargetSDK
         versionCode 1
         versionName '1.0'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     sourceSets {

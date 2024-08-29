@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         minSdkVersion 31
-        targetSdkVersion gradle.ext.aaosTargetSDK
+        targetSdkVersion 33
         versionCode 1
         versionName '1.0'
     }

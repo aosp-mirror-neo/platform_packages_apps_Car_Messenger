@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.android.car.apps.common.log.L;
@@ -55,10 +56,21 @@ public class ConversationListViewModel extends AndroidViewModel {
     }
 
     /**
+     * Gets the live data for the currently selected device
+     */
+    @NonNull
+    public LiveData<UserAccount> getCurrentAccount() {
+        return mDataModel.getCurrentAccount();
+    }
+
+    /**
      * Gets an observable {@link UIConversationItem} list for the connected account
      */
     @NonNull
-    public LiveData<List<UIConversationItem>> getConversations(@NonNull UserAccount userAccount) {
+    public LiveData<List<UIConversationItem>> getConversations(@Nullable UserAccount userAccount) {
+        if (userAccount == null) {
+            return new MutableLiveData<>(null);
+        }
         if (mUserAccount != null
                 && mUserAccount.getId() == userAccount.getId()
                 && mUIConversationLogLiveData != null) {
@@ -72,21 +84,15 @@ public class ConversationListViewModel extends AndroidViewModel {
     private LiveData<List<UIConversationItem>> createUIConversationLog(
             @NonNull UserAccount userAccount) {
         MediatorLiveData<List<UIConversationItem>> mutableLiveData = new MediatorLiveData<>();
-        mutableLiveData.addSource(
-                subscribeToConversations(userAccount),
-                pair -> {
-                    CarUxRestrictions uxRestrictions = pair.first;
-                    Collection<Conversation> list = pair.second;
-                    List<UIConversationItem> data =
-                            list.stream()
-                                    .map(
-                                            conversation ->
-                                                    UIConversationItemConverter
-                                                            .convertToUIConversationItem(
-                                                                    conversation, uxRestrictions))
-                                    .collect(Collectors.toList());
-                    mutableLiveData.postValue(data);
-                });
+        mutableLiveData.addSource(subscribeToConversations(userAccount), pair -> {
+            CarUxRestrictions uxRestrictions = pair.first;
+            Collection<Conversation> list = pair.second;
+            List<UIConversationItem> data = list.stream()
+                    .map(conversation -> UIConversationItemConverter.convertToUIConversationItem(
+                            conversation, uxRestrictions))
+                    .collect(Collectors.toList());
+            mutableLiveData.postValue(data);
+        });
         return mutableLiveData;
     }
 

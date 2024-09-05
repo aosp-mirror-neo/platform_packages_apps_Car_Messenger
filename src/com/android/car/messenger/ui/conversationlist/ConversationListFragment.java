@@ -21,6 +21,8 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.car.apps.common.log.L;
@@ -37,16 +39,12 @@ public class ConversationListFragment extends MessageListBaseFragment
         implements ConversationItemAdapter.OnConversationItemClickListener {
     private static final String TAG = "CM.ConversationListFragment";
 
-    @NonNull private static final String KEY_USER_ACCOUNT = "KEY_USER_ACCOUNT";
-    @Nullable private ConversationItemAdapter mConversationItemAdapter;
-    @Nullable private UserAccount mUserAccount;
+    private ConversationItemAdapter mConversationItemAdapter;
+    private LiveData<UserAccount> mUserAccountLiveData;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (getArguments() != null) {
-            mUserAccount = getArguments().getParcelable(KEY_USER_ACCOUNT);
-        }
 
         setMenuItems();
 
@@ -61,7 +59,10 @@ public class ConversationListFragment extends MessageListBaseFragment
 
         ConversationListViewModel viewModel =
                 new ViewModelProvider(getActivity()).get(ConversationListViewModel.class);
-        viewModel.getConversations(mUserAccount)
+        mUserAccountLiveData = viewModel.getCurrentAccount();
+        mUserAccountLiveData.observeForever(acc -> {});
+
+        Transformations.switchMap(mUserAccountLiveData, viewModel::getConversations)
                 .observe(this, conversationLog -> {
                     if (conversationLog == null || conversationLog.isEmpty()) {
                         mLoadingFrameLayout.showEmpty(R.string.no_messages);
@@ -76,7 +77,7 @@ public class ConversationListFragment extends MessageListBaseFragment
 
     private void setMenuItems() {
         Activity activity = getActivity();
-        if (activity == null || mUserAccount == null || mToolbar == null) {
+        if (activity == null || mToolbar == null) {
             return;
         }
         if (!mToolbar.getMenuItems().isEmpty()) {
@@ -85,18 +86,15 @@ public class ConversationListFragment extends MessageListBaseFragment
         if (!getResources().getBoolean(R.bool.direct_send_supported)) {
             return;
         }
-        MenuItem newMessageButton =
-                new MenuItem.Builder(activity)
-                        .setIcon(R.drawable.ui_icon_edit)
-                        .setTinted(false)
-                        .setShowIconAndTitle(true)
-                        .setTitle(R.string.new_message)
-                        .setPrimary(true)
-                        .setOnClickListener(
-                                item ->
-                                        VoiceUtil.voiceRequestGenericCompose(
-                                                activity, mUserAccount))
-                        .build();
+        MenuItem newMessageButton = new MenuItem.Builder(activity)
+                .setIcon(R.drawable.ui_icon_edit)
+                .setTinted(false)
+                .setShowIconAndTitle(true)
+                .setTitle(R.string.new_message)
+                .setPrimary(true)
+                .setOnClickListener(item -> VoiceUtil.voiceRequestGenericCompose(
+                        activity, mUserAccountLiveData.getValue()))
+                .build();
         ArrayList<MenuItem> menuItems = new ArrayList<>();
         menuItems.add(newMessageButton);
         mToolbar.setMenuItems(menuItems);
@@ -104,51 +102,42 @@ public class ConversationListFragment extends MessageListBaseFragment
 
     @Override
     public void onConversationItemClicked(@NonNull Conversation conversation) {
-        if (mUserAccount == null) {
+        UserAccount userAccount = mUserAccountLiveData.getValue();
+        if (userAccount == null) {
             return;
         }
-        VoiceUtil.voiceRequestReadConversation(requireActivity(), mUserAccount, conversation);
+        VoiceUtil.voiceRequestReadConversation(requireActivity(), userAccount, conversation);
     }
 
     @Override
     public void onReplyIconClicked(@NonNull Conversation conversation) {
-        if (mUserAccount == null) {
+        UserAccount userAccount = mUserAccountLiveData.getValue();
+        if (userAccount == null) {
             return;
         }
-        VoiceUtil.voiceRequestReplyConversation(requireActivity(), mUserAccount, conversation);
+        VoiceUtil.voiceRequestReplyConversation(requireActivity(), userAccount, conversation);
     }
 
     @Override
     public void onPlayIconClicked(@NonNull Conversation conversation) {
-        if (mUserAccount == null) {
+        UserAccount userAccount = mUserAccountLiveData.getValue();
+        if (userAccount == null) {
             return;
         }
-        VoiceUtil.voiceRequestReadConversation(requireActivity(), mUserAccount, conversation);
+        VoiceUtil.voiceRequestReadConversation(requireActivity(), userAccount, conversation);
     }
 
     /**
-     * Get instance of Conversation Log fragment
-     *
-     * @param userAccount the user device info data will be retrieved for. If null, this fragment
-     *     shows a disconnect page
-     * @return ConversationLogFragment instance
+     * Get instance of ConversationListFragment
      */
-    public static ConversationListFragment newInstance(@Nullable UserAccount userAccount) {
-        Bundle args = new Bundle();
-        args.putParcelable(KEY_USER_ACCOUNT, userAccount);
-        ConversationListFragment fragment = new ConversationListFragment();
-        fragment.setArguments(args);
-        return fragment;
+    public static ConversationListFragment newInstance() {
+        return new ConversationListFragment();
     }
 
     /**
-     * Get unique fragment tag for fragment loading data for user device
-     *
-     * @param userAccount the user device info data will be retrieved for.
-     * @return unique fragment tag
+     * Get unique fragment tag for this class
      */
-    public static String getFragmentTag(@Nullable UserAccount userAccount) {
-        int id = userAccount == null ? -1 : userAccount.getId();
-        return ConversationListFragment.class.getName() + id;
+    public static String getFragmentTag() {
+        return ConversationListFragment.class.getName();
     }
 }

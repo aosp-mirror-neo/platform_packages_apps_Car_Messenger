@@ -31,12 +31,18 @@ public class UserAccountLiveData extends MediatorLiveData<UserAccount> {
     private UserAccountLiveData() {
         addSource(UserAccountListLiveData.getInstance(), v -> {
             UserAccount account = v.getAccounts().isEmpty() ? null : v.getAccounts().get(0);
-            if (getValue() != null && account != null) {
+            if (getValue() == account) {
                 return;
             }
             L.d(TAG, "Setting current account: " + account);
             setValue(account);
         });
+    }
+
+    @Override
+    protected void onActive() {
+        super.onActive();
+        setValue(null);
     }
 
     /** Gets the instance of {@link UserAccountLiveData} */

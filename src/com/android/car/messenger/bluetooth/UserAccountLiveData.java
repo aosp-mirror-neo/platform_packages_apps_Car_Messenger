@@ -39,12 +39,6 @@ public class UserAccountLiveData extends MediatorLiveData<UserAccount> {
         });
     }
 
-    @Override
-    protected void onActive() {
-        super.onActive();
-        setValue(null);
-    }
-
     /** Gets the instance of {@link UserAccountLiveData} */
     @NonNull
     public static UserAccountLiveData getInstance() {

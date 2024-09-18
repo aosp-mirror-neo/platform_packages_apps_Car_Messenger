@@ -22,12 +22,9 @@ import static androidx.core.app.RemoteInput.RESULTS_CLIP_LABEL;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_ACTION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_CONVERSATION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_DEVICE_ADDRESS;
-import static com.android.car.assist.CarVoiceInteractionSession.KEY_NOTIFICATION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_PHONE_NUMBER;
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_READ_CONVERSATION;
-import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_READ_NOTIFICATION;
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_REPLY_CONVERSATION;
-import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_REPLY_NOTIFICATION;
 import static com.android.car.messenger.MessageConstants.EXTRA_ACCOUNT_ID;
 import static com.android.car.messenger.MessageConstants.EXTRA_CONVERSATION_KEY;
 
@@ -42,15 +39,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.service.notification.StatusBarNotification;
 
 import androidx.core.app.Person;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.car.messenger.AppFactoryTestImpl;
-import com.android.car.messenger.R;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.TelephonyDataModel;
@@ -118,8 +112,7 @@ public class VoiceUtilTest {
     }
 
     @Test
-    public void testVoiceRequestReadConversation_TTR() {
-        when(mResources.getBoolean(R.bool.ttr_conversation_supported)).thenReturn(true);
+    public void testVoiceRequestReadConversation() {
         VoiceUtil.voiceRequestReadConversation(mActivity, mUserAccount, createConversation("1"));
 
         verify(mActivity).showAssist(mCaptor.capture());
@@ -130,21 +123,7 @@ public class VoiceUtilTest {
     }
 
     @Test
-    public void testVoiceRequestReadConversation_SBN() {
-        when(mResources.getBoolean(R.bool.ttr_conversation_supported)).thenReturn(false);
-        VoiceUtil.voiceRequestReadConversation(mActivity, mUserAccount, createConversation("1"));
-
-        verify(mActivity).showAssist(mCaptor.capture());
-
-        Bundle args = mCaptor.getValue();
-        assertThat(args.getString(KEY_ACTION)).isEqualTo(VOICE_ACTION_READ_NOTIFICATION);
-        Parcelable sbn = args.getParcelable(KEY_NOTIFICATION);
-        assertThat(sbn).isInstanceOf(StatusBarNotification.class);
-    }
-
-    @Test
-    public void testVoiceRequestReplyConversation_TTR() {
-        when(mResources.getBoolean(R.bool.ttr_conversation_supported)).thenReturn(true);
+    public void testVoiceRequestReplyConversation() {
         VoiceUtil.voiceRequestReplyConversation(mActivity, mUserAccount, createConversation("2"));
 
         verify(mActivity).showAssist(mCaptor.capture());
@@ -152,19 +131,6 @@ public class VoiceUtilTest {
         Bundle args = mCaptor.getValue();
         assertThat(args.getString(KEY_ACTION)).isEqualTo(VOICE_ACTION_REPLY_CONVERSATION);
         assertThat(args.getBundle(KEY_CONVERSATION)).isNotNull();
-    }
-
-    @Test
-    public void testVoiceRequestReplyConversation_SBN() {
-        when(mResources.getBoolean(R.bool.ttr_conversation_supported)).thenReturn(false);
-        VoiceUtil.voiceRequestReplyConversation(mActivity, mUserAccount, createConversation("2"));
-
-        verify(mActivity).showAssist(mCaptor.capture());
-
-        Bundle args = mCaptor.getValue();
-        assertThat(args.getString(KEY_ACTION)).isEqualTo(VOICE_ACTION_REPLY_NOTIFICATION);
-        Parcelable sbn = args.getParcelable(KEY_NOTIFICATION);
-        assertThat(sbn).isInstanceOf(StatusBarNotification.class);
     }
 
     @Test

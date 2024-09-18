@@ -19,13 +19,10 @@ import static com.android.car.assist.CarVoiceInteractionSession.KEY_ACTION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_CONVERSATION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_DEVICE_ADDRESS;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_DEVICE_NAME;
-import static com.android.car.assist.CarVoiceInteractionSession.KEY_NOTIFICATION;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_PHONE_NUMBER;
 import static com.android.car.assist.CarVoiceInteractionSession.KEY_SEND_PENDING_INTENT;
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_READ_CONVERSATION;
-import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_READ_NOTIFICATION;
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_REPLY_CONVERSATION;
-import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_REPLY_NOTIFICATION;
 import static com.android.car.assist.CarVoiceInteractionSession.VOICE_ACTION_SEND_SMS;
 import static com.android.car.messenger.MessageConstants.ACTION_DIRECT_SEND;
 import static com.android.car.messenger.MessageConstants.ACTION_MARK_AS_READ;
@@ -42,7 +39,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -58,7 +54,6 @@ import com.android.car.messenger.common.Conversation.ConversationAction.ActionTy
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.messaging.utils.ConversationUtil;
 import com.android.car.messenger.services.MessengerService;
-import com.android.car.messenger.services.NotificationHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,8 +81,7 @@ public class VoiceUtil {
                 activity,
                 conversation,
                 userAccount,
-                VOICE_ACTION_READ_CONVERSATION,
-                VOICE_ACTION_READ_NOTIFICATION);
+                VOICE_ACTION_READ_CONVERSATION);
     }
 
     /** Requests Voice request to reply to a conversation */
@@ -100,39 +94,20 @@ public class VoiceUtil {
                 activity,
                 conversation,
                 userAccount,
-                VOICE_ACTION_REPLY_CONVERSATION,
-                VOICE_ACTION_REPLY_NOTIFICATION);
+                VOICE_ACTION_REPLY_CONVERSATION);
     }
 
     private static void voiceRequestHelper(
             @NonNull Activity activity,
             @NonNull Conversation conversation,
             @NonNull UserAccount userAccount,
-            @NonNull String conversationAction,
-            @NonNull String notificationAction) {
+            @NonNull String conversationAction) {
         Bundle args = new Bundle();
         int readLimit = activity.getResources().getInteger(R.integer.max_read_messages_to_read);
         Conversation tapToReadConversation = ConversationUtil.summarizeConversation(
                 createTapToReadConversation(conversation, userAccount.getId()), readLimit);
-        boolean isConversationSupported =
-                activity.getResources().getBoolean(R.bool.ttr_conversation_supported);
-        if (isConversationSupported) {
-            // New API using generic Conversation class
-            // is currently limited in support by partner assistants and is being phased in.
-            args.putString(KEY_ACTION, conversationAction);
-            args.putBundle(KEY_CONVERSATION, tapToReadConversation.toBundle());
-        } else {
-            // Continue using legacy SBN
-            StatusBarNotification sbn =
-                    NotificationHandler.postNotificationForLegacyTapToRead(tapToReadConversation);
-            if (sbn == null) {
-                L.e(TAG, "Failed to convert Conversation to SBN for Legacy Tap To Read.");
-                return;
-            }
-            args.putString(KEY_ACTION, notificationAction);
-            args.putParcelable(KEY_NOTIFICATION, sbn);
-        }
-
+        args.putString(KEY_ACTION, conversationAction);
+        args.putBundle(KEY_CONVERSATION, tapToReadConversation.toBundle());
         activity.showAssist(args);
     }
 

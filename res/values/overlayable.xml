@@ -26,7 +26,6 @@ REGENERATE USING packages/apps/Car/tests/tools/rro/generate-overlayable.py
       <item type="bool" name="filter_local_sim"/>
       <item type="bool" name="group_avatar_fill_background"/>
       <item type="bool" name="in_app_mute_supported"/>
-      <item type="bool" name="ttr_conversation_supported"/>
       <item type="color" name="background_image_30p_black"/>
       <item type="color" name="car_card_ripple_background"/>
       <item type="color" name="divider_color"/>

@@ -30,7 +30,7 @@ android_app {
 
     min_sdk_version: "31",
 
-    target_sdk_version: "31",
+    target_sdk_version: "33",
 
     sdk_version: "system_current",
 
@@ -75,9 +75,9 @@ android_test_helper_app {
 
     resource_dirs: ["res"],
 
-    min_sdk_version: "30",
+    min_sdk_version: "31",
 
-    target_sdk_version: "31",
+    target_sdk_version: "33",
 
     sdk_version: "system_current",
 

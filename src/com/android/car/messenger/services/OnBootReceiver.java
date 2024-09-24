@@ -19,6 +19,8 @@ package com.android.car.messenger.services;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Process;
+import android.os.UserHandle;
 
 import androidx.annotation.NonNull;
 
@@ -33,6 +35,12 @@ public class OnBootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(@NonNull Context context, @NonNull Intent intent) {
         L.d(TAG, "BootReceiver received " + intent.getAction());
+
+        if (Process.myUserHandle() == UserHandle.SYSTEM) {
+            L.i(TAG, "Skipping onBoot for user 0");
+            return;
+        }
+
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             context.startService(new Intent(context, MessengerService.class));
         } else if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {

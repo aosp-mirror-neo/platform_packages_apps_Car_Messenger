@@ -38,6 +38,7 @@ import java.time.Instant;
 @RunWith(AndroidJUnit4.class)
 public class SmsUtilsTest {
 
+    private static final int SMS_CONTENT_TYPE = 0;
     private static final int ID_INDEX = 0;
     private static final int THREAD_ID_INDEX = 1;
     private static final int RECIPIENTS_INDEX = 2;
@@ -46,6 +47,7 @@ public class SmsUtilsTest {
     private static final int DATE_INDEX = 5;
     private static final int TYPE_INDEX = 6;
     private static final int READ_INDEX = 7;
+    private static final int SEEN_INDEX = 8;
 
     @Mock
     private Cursor mMockCursor;
@@ -61,6 +63,7 @@ public class SmsUtilsTest {
         when(mMockCursor.getColumnIndex(Sms.DATE)).thenReturn(DATE_INDEX);
         when(mMockCursor.getColumnIndex(Sms.TYPE)).thenReturn(TYPE_INDEX);
         when(mMockCursor.getColumnIndex(Sms.READ)).thenReturn(READ_INDEX);
+        when(mMockCursor.getColumnIndex(Sms.SEEN)).thenReturn(SEEN_INDEX);
         when(mMockCursor.getColumnIndex(Sms._ID)).thenReturn(ID_INDEX);
     }
 
@@ -72,8 +75,9 @@ public class SmsUtilsTest {
         String body = "text";
         int subscriptionId = 0;
         int type = MessageType.MESSAGE_TYPE_SENT;
-        long timestamp = 123;
+        long timestampMillis = 123456;
         int read = 1;
+        int seen = 0;
 
         when(mMockCursor.getString(ID_INDEX)).thenReturn(id);
         when(mMockCursor.getInt(THREAD_ID_INDEX)).thenReturn(threadId);
@@ -81,18 +85,22 @@ public class SmsUtilsTest {
         when(mMockCursor.getString(BODY_INDEX)).thenReturn(body);
         when(mMockCursor.getInt(SUBSCRIPTION_ID_INDEX)).thenReturn(subscriptionId);
         when(mMockCursor.getInt(TYPE_INDEX)).thenReturn(type);
-        when(mMockCursor.getLong(DATE_INDEX)).thenReturn(timestamp);
+        when(mMockCursor.getLong(DATE_INDEX)).thenReturn(timestampMillis);
         when(mMockCursor.getInt(READ_INDEX)).thenReturn(read);
+        when(mMockCursor.getInt(SEEN_INDEX)).thenReturn(seen);
 
         MmsSmsMessage message = SmsUtils.parseSms(mMockCursor);
 
-        assertThat(message.mId).isEqualTo(id);
-        assertThat(message.mThreadId).isEqualTo(threadId);
-        assertThat(message.mPhoneNumber).isEqualTo(phoneNumber);
-        assertThat(message.mBody).isEqualTo(body);
-        assertThat(message.mSubscriptionId).isEqualTo(subscriptionId);
-        assertThat(message.mType).isEqualTo(type);
-        assertThat(message.mDate).isEqualTo(Instant.ofEpochMilli(timestamp));
-        assertThat(message.mRead).isTrue();
+        assertThat(message.getId()).isEqualTo(id);
+        assertThat(message.getThreadId()).isEqualTo(threadId);
+        assertThat(message.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(message.getBody()).isEqualTo(body);
+        assertThat(message.getSubscriptionId()).isEqualTo(subscriptionId);
+        assertThat(message.getType()).isEqualTo(type);
+        assertThat(message.getDate()).isEqualTo(Instant.ofEpochMilli(timestampMillis));
+        assertThat(message.getTimestamp()).isEqualTo(timestampMillis);
+        assertThat(message.isRead()).isTrue();
+        assertThat(message.isSeen()).isFalse();
+        assertThat(message.getContentType()).isEqualTo(SMS_CONTENT_TYPE);
     }
 }

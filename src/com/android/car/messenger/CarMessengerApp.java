@@ -18,11 +18,13 @@ package com.android.car.messenger;
 
 import android.app.Application;
 import android.os.Handler;
+import android.os.Process;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.telephony.common.InMemoryPhoneBook;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
@@ -34,9 +36,10 @@ public class CarMessengerApp extends Application implements UncaughtExceptionHan
 
     @Override
     public void onCreate() {
-        L.d(TAG, "CarMessengerApp onCreate");
+        L.d(TAG, "CarMessengerApp onCreate on " + Process.myUserHandle());
         super.onCreate();
         AppFactoryImpl.register(this);
+        InMemoryPhoneBook.init(this);
         sSystemUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }

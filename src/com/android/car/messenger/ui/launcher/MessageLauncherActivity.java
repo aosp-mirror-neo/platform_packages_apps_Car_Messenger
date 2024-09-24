@@ -22,13 +22,17 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.apps.common.util.LiveDataFunctions;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.interfaces.AppFactory;
+import com.android.car.messenger.interfaces.BluetoothState;
 import com.android.car.messenger.services.MessengerService;
 import com.android.car.messenger.ui.conversationlist.ConversationListFragment;
+import com.android.car.messenger.ui.error.BluetoothErrorFragment;
 import com.android.car.ui.baselayout.Insets;
 import com.android.car.ui.baselayout.InsetsChangedListener;
 
@@ -43,34 +47,45 @@ public class MessageLauncherActivity extends FragmentActivity implements InsetsC
     protected void onCreate(Bundle savedInstanceState) {
         L.d(TAG, "onCreate: MessageLauncher");
         super.onCreate(savedInstanceState);
+
         MessageLauncherViewModel viewModel =
                 new ViewModelProvider(this).get(MessageLauncherViewModel.class);
 
         L.d(TAG, "Starting MessengerService");
         startService(new Intent(this, MessengerService.class));
 
-        viewModel
-                .getAccounts()
-                .observe(
-                        this,
-                        accounts -> {
-                            L.d(TAG, "Total number of accounts: %d", accounts.size());
-                            // First version only takes one device until multi-account support is
-                            // added
-                            UserAccount primaryAccount =
-                                    !accounts.isEmpty() ? accounts.get(0) : null;
-                            String fragmentTag =
-                                    ConversationListFragment.getFragmentTag(primaryAccount);
-                            Fragment fragment =
-                                    getSupportFragmentManager().findFragmentByTag(fragmentTag);
-                            if (fragment == null) {
-                                fragment = ConversationListFragment.newInstance(primaryAccount);
-                            }
-                            setContentFragment(fragment, fragmentTag);
-                        });
+        LiveData<Integer> bluetoothStateLiveData = viewModel.getBluetoothStateLiveData();
+        LiveData<UserAccount> currentAccountLiveData = viewModel.getCurrentAccount();
+
+        LiveDataFunctions.pair(bluetoothStateLiveData, currentAccountLiveData)
+                .observe(this, pair -> {
+                    int bluetoothState = pair.first;
+                    UserAccount userAccount = pair.second;
+
+                    String fragmentTag;
+                    Fragment fragment;
+                    if (bluetoothState != BluetoothState.ENABLED || userAccount == null) {
+                        fragmentTag = BluetoothErrorFragment.getFragmentTag();
+                        fragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
+                        if (fragment == null) {
+                            fragment = BluetoothErrorFragment.newInstance();
+                        }
+                        setContentFragment(fragment, fragmentTag);
+                    } else {
+                        fragmentTag = ConversationListFragment.getFragmentTag();
+                        fragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
+                        if (fragment == null) {
+                            fragment = ConversationListFragment.newInstance();
+                        }
+                        setContentFragment(fragment, fragmentTag);
+                    }
+                });
     }
 
     private void setContentFragment(Fragment fragment, String fragmentTag) {
+        if (fragment.isAdded() && fragment.isVisible()) {
+            return;
+        }
         getSupportFragmentManager().executePendingTransactions();
         while (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStackImmediate();

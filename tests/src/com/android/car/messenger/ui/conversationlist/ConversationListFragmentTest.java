@@ -22,8 +22,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibilit
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +36,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.messenger.R;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.interfaces.BluetoothState;
 import com.android.car.messenger.testing.TestActivity;
 
 import org.junit.Before;
@@ -67,45 +64,26 @@ public class ConversationListFragmentTest {
         when(mMockUserAccount.getId()).thenReturn(USER_ID);
     }
 
-    private void startFragment(UserAccount userAccount, List<UIConversationItem> conversations,
-            int state) {
+    private void startFragment(List<UIConversationItem> conversations) {
         mActivityScenario = ActivityScenario.launch(TestActivity.class);
         mActivityScenario.onActivity(activity -> {
             ConversationListViewModel viewModel = new ViewModelProvider(activity).get(
                     ConversationListViewModel.class);
 
+            when(viewModel.getCurrentAccount()).thenReturn(
+                    new MutableLiveData<>(mMockUserAccount));
             when(viewModel.getConversations(mMockUserAccount)).thenReturn(
                     new MutableLiveData<>(conversations));
-            when(viewModel.getBluetoothStateLiveData()).thenReturn(
-                    new MutableLiveData<>(state));
 
-            mFragment = ConversationListFragment.newInstance(userAccount);
+            mFragment = ConversationListFragment.newInstance();
             activity.getSupportFragmentManager().beginTransaction().add(
                     R.id.test_fragment_container, mFragment).commit();
         });
     }
 
     @Test
-    public void testOnViewCreated_noUserAccount() {
-        startFragment(null, null, BluetoothState.ENABLED);
-        onView(withId(R.id.error_message))
-                .check(matches(withText(R.string.bluetooth_disconnected)));
-        onView(withId(R.id.error_action_button))
-                .check(matches(withText(R.string.connect_bluetooth_button_text)));
-    }
-
-    @Test
-    public void testOnViewCreated_noDevice() {
-        startFragment(mMockUserAccount, null, BluetoothState.DISABLED);
-        onView(withId(R.id.error_message))
-                .check(matches(withText(R.string.bluetooth_disconnected)));
-        onView(withId(R.id.error_action_button))
-                .check(matches(withText(R.string.connect_bluetooth_button_text)));
-    }
-
-    @Test
     public void testOnViewCreated_emptyList() {
-        startFragment(mMockUserAccount, Collections.EMPTY_LIST, BluetoothState.ENABLED);
+        startFragment(Collections.EMPTY_LIST);
         onView(withId(R.id.empty_message)).check(matches(withText(R.string.no_messages)));
     }
 
@@ -134,7 +112,7 @@ public class ConversationListFragmentTest {
                 mock(Conversation.class));
         conversations.add(item);
 
-        startFragment(mMockUserAccount, conversations, BluetoothState.ENABLED);
+        startFragment(conversations);
 
         onView(withId(R.id.list_view))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
@@ -174,7 +152,7 @@ public class ConversationListFragmentTest {
                 mock(Conversation.class));
         conversations.add(item);
 
-        startFragment(mMockUserAccount, conversations, BluetoothState.ENABLED);
+        startFragment(conversations);
 
         onView(withId(R.id.list_view))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
@@ -187,13 +165,5 @@ public class ConversationListFragmentTest {
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.GONE)));
         onView(withId(R.id.play_action_button))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
-    }
-
-    @Test
-    public void testGetFragmentTag() {
-        assertThat(ConversationListFragment.getFragmentTag(null))
-                .isEqualTo(ConversationListFragment.class.getName() + "-1");
-        assertThat(ConversationListFragment.getFragmentTag(mMockUserAccount))
-                .isEqualTo(ConversationListFragment.class.getName() + USER_ID);
     }
 }

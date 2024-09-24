@@ -67,7 +67,7 @@
                 android:value="true" />
         </activity>
 
-        <!-- BroadcastReceiver that listens for incoming SMS messages -->
+        <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver
             android:name=".services.MmsReceiver"
             android:exported="false"
@@ -78,7 +78,18 @@
             </intent-filter>
         </receiver>
 
-        <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        <!-- BroadcastReceiver that listens for incoming SMS messages -->
+        <receiver
+            android:name=".services.SmsReceiver"
+            android:exported="false"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- BroadcastReceiver for car booting -->
         <receiver
             android:name=".services.OnBootReceiver"
             android:enabled="true"
@@ -87,17 +98,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- BroadcastReceiver for car booting -->
-        <receiver
-            android:name=".services.SmsReceiver"
-            android:exported="false"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
 

@@ -65,17 +65,20 @@ public class UserAccount implements Parcelable {
             };
 
     /**
-     * The user id can be used to retrieve data for that specific account.
+     * The user id that can be used to retrieve data for that specific account. This is also known
+     * as the subscriptionId in telephony and is a local identifier. For device unique id, use
+     * {@link #getIccId()}.
      *
-     * @return the unique identifier for the user account
+     * @return the unique local identifier for the user account
      */
     public int getId() {
         return mId;
     }
 
     /**
-     * The IccId is a globally unique serial number—a one-of-a-kind signature that identifies the
-     * SIM card itself or bluetooth address of the account.
+     * The IccId is a globally unique serial number that identifies the SIM card itself or bluetooth
+     * address of the account. Telephony may use the mac address of the bluetooth device for this
+     * field e.g. 'XX:XX:XX:XX:XX:XX'.
      *
      * <p>For device/account disambiguation for Contact db queries, this field maps to {@link
      * android.provider.ContactsContract.RawContacts#ACCOUNT_NAME} in the Contacts database.

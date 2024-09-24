@@ -34,15 +34,21 @@ import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.app.NotificationCompat;
 
 import com.android.car.apps.common.log.L;
 import com.android.car.messenger.R;
+import com.android.car.messenger.bluetooth.UserAccount;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData;
+import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
 import com.android.car.messenger.util.VoiceUtil;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /** Service responsible for handling messaging events. */
 public class MessengerService extends Service {
@@ -63,23 +69,59 @@ public class MessengerService extends Service {
     /* Delay fetching to give time for the system to start up on boot */
     private static final Duration DELAY_FETCH_DURATION = Duration.ofSeconds(3);
 
+    private DataModel mDataModel;
+
+    // Map of SubId to a set of ConversationIds. Used to keep track which notifications were sent.
+    @VisibleForTesting
+    HashMap<Integer, HashSet<String>> mNotifiedCache = new HashMap<>();
+
     @Override
     public void onCreate() {
         super.onCreate();
         L.d(TAG, "MessengerService - onCreate");
+        mDataModel = AppFactory.get().getDataModel();
         Handler handler = new Handler();
         handler.postDelayed(this::subscribeToNotificationUpdates, DELAY_FETCH_DURATION.toMillis());
-
         sendServiceRunningNotification();
     }
 
     private void subscribeToNotificationUpdates() {
-        DataModel dataModel = AppFactory.get().getDataModel();
-        dataModel.getUnseenMessages().observeForever((conversation) -> {
+        mDataModel.getUnseenMessages().observeForever((conversation) -> {
+            logNewMessage(conversation);
             NotificationHandler.postNotification(conversation);
             NotificationHandler.postTimestampDesyncNotification(conversation);
         });
-        dataModel.onConversationRemoved().observeForever(NotificationHandler::removeNotification);
+        UserAccountListLiveData.getInstance().observeForever(this::removeNotificationsFromDevice);
+    }
+
+    private void logNewMessage(Conversation conversation) {
+        String convId = conversation.getId();
+        UserAccount ua = mDataModel.getCurrentAccount().getValue();
+
+        if (ua == null) {
+            L.w(TAG, "UserAccount is null, cannot store notified conversation %s", convId);
+            return;
+        }
+
+        L.d(TAG, "Storing conversation in notified cache: %s", convId);
+        HashSet<String> convIds =
+                mNotifiedCache.computeIfAbsent(ua.getId(), k -> new HashSet<>());
+        convIds.add(convId);
+    }
+
+    /** Removes all notifications from disconnected devices and unmutes them. */
+    private void removeNotificationsFromDevice(UserAccountListLiveData.UserAccountChangeList cl) {
+        for (UserAccount userAccount : cl.getRemovedAccounts()) {
+            L.d(TAG, "Removing notifications from userAccount: " + userAccount.getId());
+            HashSet<String> convIds = mNotifiedCache.get(userAccount.getId());
+            if (convIds != null) {
+                for (String convId : convIds) {
+                    NotificationHandler.removeNotification(convId);
+                    mDataModel.setConversationMuted(convId, false);
+                }
+            }
+            mNotifiedCache.remove(userAccount.getId());
+        }
     }
 
     private void sendServiceRunningNotification() {
@@ -144,6 +186,7 @@ public class MessengerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         L.d(TAG, "onDestroy");
+        NotificationHandler.removeAllNotifications();
     }
 
     @Nullable

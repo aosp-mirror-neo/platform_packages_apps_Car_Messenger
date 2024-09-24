@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+    id 'buildSrc.jdk.jdk8'
+}
 
 android {
     compileSdkVersion gradle.ext.aaosLatestSDK
 
     defaultConfig {
         minSdkVersion 31
-        targetSdkVersion gradle.ext.aaosTargetSDK
+        targetSdkVersion 33
         versionCode 1
         versionName '1.0'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     sourceSets {

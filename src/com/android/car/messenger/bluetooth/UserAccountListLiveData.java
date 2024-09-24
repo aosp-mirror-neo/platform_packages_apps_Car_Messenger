@@ -1,0 +1,258 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.car.messenger.bluetooth;
+
+import static android.telephony.SubscriptionManager.SUBSCRIPTION_TYPE_LOCAL_SIM;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
+import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.LiveData;
+
+import com.android.car.apps.common.log.L;
+import com.android.car.messenger.R;
+import com.android.car.messenger.bluetooth.UserAccountListLiveData.UserAccountChangeList;
+import com.android.car.messenger.interfaces.AppFactory;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * Get the UserAccount of the currently active remote bluetooth SIM(s). The records will be sorted
+ * by {@link SubscriptionInfo#getSimSlotIndex} then by {@link SubscriptionInfo#getSubscriptionId}.
+ *
+ * <p>Requires Permission: {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE} or
+ * that the calling app has carrier privileges (see {@link TelephonyManager#hasCarrierPrivileges}).
+ * In the latter case, only records accessible to the calling app are returned.
+ *
+ * <p>Listens for changes via {@link OnSubscriptionsChangedListener} and the latest data can be
+ * observed and retrieved via {@link LiveData#getValue()}.
+ *
+ * <p>Sorts list of the currently {@link SubscriptionInfo} records available on the device
+ *
+ * <ul>
+ *   <li>If the list is empty then there are no {@link SubscriptionInfo} records currently
+ *       available.
+ *   <li>if the list is non-empty the list is sorted by {@link SubscriptionInfo#getSimSlotIndex}
+ *       then by {@link SubscriptionInfo#getSubscriptionId}.
+ * </ul>
+ */
+public class UserAccountListLiveData extends LiveData<UserAccountChangeList> {
+    private static final String TAG = "CM.UserAccountListLiveData";
+
+    private final Context mContext;
+    @NonNull private final SubscriptionManager mSubscriptionManager;
+    private final boolean mFilterLocalSim;
+
+    @NonNull
+    private final OnSubscriptionsChangedListener mOnChangeListener =
+            new OnSubscriptionsChangedListener() {
+                @Override
+                public void onSubscriptionsChanged() {
+                    L.i(TAG, "Subscriptions changed");
+                    loadValue();
+                }
+            };
+
+    @Nullable private static UserAccountListLiveData sInstance;
+
+    private UserAccountListLiveData() {
+        mContext = AppFactory.get().getContext();
+        mFilterLocalSim = mContext.getResources().getBoolean(R.bool.filter_local_sim);
+        mSubscriptionManager = mContext.getSystemService(SubscriptionManager.class);
+        mSubscriptionManager.addOnSubscriptionsChangedListener(
+                mContext.getMainExecutor(), mOnChangeListener);
+        loadValue();
+    }
+
+    /**
+     * Refresh the user accounts. Updates listeners if a change is found. Useful to call when
+     * something occurs that indicates a change in accounts, such as empty messages. This is useful
+     * as t here are occasions when the subscription on change listener is not called after a
+     * subscription is deleted.
+     */
+    public void refresh() {
+        loadValue();
+    }
+
+    /** Gets the instance of {@link UserAccountListLiveData} */
+    @NonNull
+    public static UserAccountListLiveData getInstance() {
+        if (sInstance == null) {
+            sInstance = new UserAccountListLiveData();
+        }
+        return sInstance;
+    }
+
+    private void loadValue() {
+        List<UserAccount> accounts = getNullSafeSubscriptionInfoList().stream().map(it -> {
+            int subscriptionId = it.getSubscriptionId();
+            String iccId = it.getIccId();
+            String displayName = it.getDisplayName() != null ? it.getDisplayName().toString() : "";
+            L.d(TAG, "Found account %s, %s, subId: %s",
+                    it.getDisplayName(), it.getIccId(), subscriptionId);
+            return new UserAccount(subscriptionId, displayName, iccId, Instant.now());
+        }).collect(Collectors.toList());
+
+        // get the removed accounts and added accounts.
+        List<UserAccount> prevUserAccounts = getValueOrEmpty().mAccounts;
+        Set<UserAccount> addedAccounts = getDifference(accounts, prevUserAccounts);
+        Set<UserAccount> removedAccounts = getDifference(prevUserAccounts, accounts);
+
+        if (addedAccounts.isEmpty() && removedAccounts.isEmpty()) {
+            // Return early if no new accounts were added or removed since last change list.
+            // However, if no account is found, post an empty changelist to allow
+            // the subscriber update the UI with "no account found or all accounts disconnected"
+            if (accounts.isEmpty()) {
+                postValue(new UserAccountChangeList());
+            }
+            return;
+        }
+
+        L.d(TAG, "accounts: %d, added: %d, removed: %d",
+                accounts.size(), addedAccounts.size(), removedAccounts.size());
+
+        UserAccountChangeList newAccountChangeList = new UserAccountChangeList();
+        newAccountChangeList.mAccounts = accounts;
+        newAccountChangeList.mAddedAccounts = addedAccounts;
+        newAccountChangeList.mRemovedAccounts = removedAccounts;
+        postValue(newAccountChangeList);
+    }
+
+    /**
+     * Returns User Account with the given iccId
+     *
+     * @param iccId Maps to the {@link SubscriptionInfo#getIccId()}
+     */
+    @Nullable
+    public static UserAccount getUserAccount(@NonNull String iccId) {
+        Collection<UserAccount> userAccounts = getValueOrEmpty().getAccounts();
+        for (UserAccount account : userAccounts) {
+            if (iccId.equals(account.getIccId())) {
+                return account;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns User Account with the given subId
+     *
+     * @param subId Maps to the {@link SubscriptionInfo#getSubscriptionId()}
+     */
+    @Nullable
+    public static UserAccount getUserAccount(int subId) {
+        Collection<UserAccount> userAccounts = getValueOrEmpty().getAccounts();
+        for (UserAccount account : userAccounts) {
+            if (subId == account.getId()) {
+                return account;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns a list that contains a difference between the two lists - firstList - secondList =
+     * result This essentially points out which items or changes are not present in firstList.
+     */
+    @NonNull
+    public static Set<UserAccount> getDifference(
+            @NonNull Collection<UserAccount> firstList,
+            @NonNull Collection<UserAccount> secondList) {
+        return firstList.stream()
+                .filter(it -> secondList.stream().noneMatch(item -> item.getId() == it.getId()))
+                .collect(Collectors.toSet());
+    }
+
+    /** A list of {@link UserAccount} with information on what changed */
+    public static class UserAccountChangeList {
+        @NonNull private List<UserAccount> mAccounts = new ArrayList<>();
+        @NonNull private Set<UserAccount> mRemovedAccounts = new HashSet<>();
+        @NonNull private Set<UserAccount> mAddedAccounts = new HashSet<>();
+
+        /** Get all user accounts */
+        @NonNull
+        public List<UserAccount> getAccounts() {
+            return mAccounts;
+        }
+
+        /** Get removed accounts for this change list */
+        @NonNull
+        public Set<UserAccount> getRemovedAccounts() {
+            return mRemovedAccounts;
+        }
+
+        /** Gets added accounts for this change list */
+        @NonNull
+        public Set<UserAccount> getAddedAccounts() {
+            return mAddedAccounts;
+        }
+    }
+
+    /** Returns the value or empty changelist, if value is null */
+    @NonNull
+    private static UserAccountChangeList getValueOrEmpty() {
+        UserAccountChangeList value = sInstance != null ? sInstance.getValue() : null;
+        if (value == null) {
+            value = new UserAccountChangeList();
+        }
+        return value;
+    }
+
+    /** Returns null safe subscription info list. The subscriptions will only be type REMOTE_SIM */
+    @NonNull
+    private List<SubscriptionInfo> getNullSafeSubscriptionInfoList() {
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "READ_PHONE_STATE permission not granted");
+            return new ArrayList<>();
+        }
+
+        List<SubscriptionInfo> subscriptionInfos =
+                mSubscriptionManager.getActiveSubscriptionInfoList();
+
+        if (subscriptionInfos == null) {
+            return new ArrayList<>();
+        }
+
+        // Filter the list to return only remote sim connections
+        if (mFilterLocalSim) {
+            subscriptionInfos.removeIf(
+                    info -> info.getSubscriptionType() == SUBSCRIPTION_TYPE_LOCAL_SIM);
+        }
+
+        // The last added subscription is more likely the last device connection made
+        // and more likely relevant to the user.
+        // Reverse the subscription list to prioritize the last connected device.
+        Collections.reverse(subscriptionInfos);
+        return subscriptionInfos;
+    }
+}

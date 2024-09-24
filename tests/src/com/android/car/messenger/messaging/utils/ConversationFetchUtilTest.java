@@ -21,7 +21,6 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSess
 
 import static com.google.common.truth.Truth.assertThat;
 
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -36,9 +35,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.MessageConstants;
-import com.android.car.messenger.common.Conversation;
-import com.android.car.messenger.common.Conversation.Message;
-import com.android.car.messenger.testing.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,6 +47,7 @@ import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +55,9 @@ import java.util.Set;
 @RunWith(AndroidJUnit4.class)
 public class ConversationFetchUtilTest {
 
+    private static final String CONVERSATION_ID = "0";
+    private static final int SUBSCRIPTION_ID = 5;
+    private static final int SUBSCRIPTION_ID2 = 6;
     private static final String TEST_CONTACT_ID = "TEST_CONTACT_1";
     private static final String TEST_CONTACT_ID2 = "TEST_CONTACT_2";
 
@@ -87,83 +87,40 @@ public class ConversationFetchUtilTest {
                 .spyStatic(ContactUtils.class)
                 .startMocking();
 
-        Person person = new Person.Builder().build();
-        List<Message> messages = new ArrayList<>();
+        List<MmsSmsMessage> messages = new ArrayList<>();
 
         try {
-            setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
+            doReturn(messages).when(() -> MessageUtils.getRawMessages(any()));
 
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
-            assertThat(conversation.getMessages()).isEmpty();
-            assertThat(conversation.getUnreadCount()).isEqualTo(0);
+            HashMap<Integer, List<MmsSmsMessage>> map =
+                    ConversationFetchUtil.fetchConversationThread(CONVERSATION_ID);
+            assertThat(map).isEmpty();
         } finally {
             session.finishMocking();
         }
     }
 
     @Test
-    public void testFetchConversation_mixedMessages() {
+    public void testFetchConversation_multiDevice() {
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
                 .spyStatic(CursorUtils.class)
                 .spyStatic(MessageUtils.class)
                 .spyStatic(ContactUtils.class)
                 .startMocking();
 
-        Person person = new Person.Builder().build();
-        Message msg1 = TestUtils.createRecvMessage(
-                "test1", /* timestamp= */ 1, person, /* isRead= */ true);
-        Message reply1 = TestUtils.createReplyMessage(
-                "test1", /* timestamp= */ 2, person);
-        Message msg2 = TestUtils.createRecvMessage(
-                "test1", /* timestamp= */ 3, person, /* isRead= */ false);
-        Message reply2 = TestUtils.createReplyMessage(
-                "test1", /* timestamp= */ 4, person);
-        List<Message> messages = TestUtils.createMessageListDesc(reply2, msg2, reply1, msg1);
+        MmsSmsMessage msg1 = createMessage("0", SUBSCRIPTION_ID);
+        MmsSmsMessage msg2 = createMessage("1", SUBSCRIPTION_ID2);
+        MmsSmsMessage msg3 = createMessage("2", SUBSCRIPTION_ID2);
+        MmsSmsMessage msg4 = createMessage("3", SUBSCRIPTION_ID);
+
+        List<MmsSmsMessage> messages = List.of(msg1, msg2, msg3, msg4);
 
         try {
-            setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
+            doReturn(messages).when(() -> MessageUtils.getRawMessages(any()));
 
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
-            assertThat(conversation.getMessages())
-                    .containsExactly(msg1, reply1, msg2, reply2).inOrder();
-            assertThat(conversation.getUnreadCount()).isEqualTo(0);
-        } finally {
-            session.finishMocking();
-        }
-    }
-
-    @Test
-    public void testFetchConversation_unreadMessages() {
-        MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
-                .spyStatic(CursorUtils.class)
-                .spyStatic(MessageUtils.class)
-                .spyStatic(ContactUtils.class)
-                .startMocking();
-
-        Person person = new Person.Builder().build();
-        Message reply1 = TestUtils.createReplyMessage(
-                "test1", /* timestamp= */ 1, person);
-        Message msg1 = TestUtils.createRecvMessage(
-                "test1", /* timestamp= */ 2, person, /* isRead= */ true);
-        Message msg2 = TestUtils.createRecvMessage(
-                "test1", /* timestamp= */ 3, person, /* isRead= */ false);
-        Message msg3 = TestUtils.createRecvMessage(
-                "test1", /* timestamp= */ 4, person, /* isRead= */ false);
-        List<Message> messages = TestUtils.createMessageListDesc(msg3, msg2, msg1, reply1);
-
-        try {
-            setupFetch(person);
-            doReturn(messages).when(() -> MessageUtils.getMessages(anyInt(), any(), any()));
-
-            Conversation conversation =
-                    ConversationFetchUtil.fetchCompleteConversation(TEST_CONTACT_ID);
-            assertThat(conversation.getMessages())
-                    .containsExactly(reply1, msg1, msg2, msg3).inOrder();
-            assertThat(conversation.getUnreadCount()).isEqualTo(2);
+            HashMap<Integer, List<MmsSmsMessage>> map =
+                    ConversationFetchUtil.fetchConversationThread(CONVERSATION_ID);
+            assertThat(map).hasSize(2);
         } finally {
             session.finishMocking();
         }
@@ -183,10 +140,17 @@ public class ConversationFetchUtilTest {
 
     private void setupFetch(Person person) {
         doReturn(Arrays.asList(person)).when(
-                () -> ContactUtils.getRecipients(anyString(), any()));
+                () -> ContactUtils.getRecipients(anyString(), any(), any()));
         doReturn(null).when(() -> CursorUtils.getMessagesCursor(
-                anyString(), anyInt(), eq(CursorUtils.ContentType.MMS)));
+                anyString(), eq(CursorUtils.ContentType.MMS)));
         doReturn(null).when(() -> CursorUtils.getMessagesCursor(
-                anyString(), anyInt(), eq(CursorUtils.ContentType.SMS)));
+                anyString(), eq(CursorUtils.ContentType.SMS)));
+    }
+
+    private MmsSmsMessage createMessage(String msgId, int subId) {
+        return new MmsSmsMessage.Builder()
+                .setId(msgId)
+                .setSubscriptionId(subId)
+                .build();
     }
 }

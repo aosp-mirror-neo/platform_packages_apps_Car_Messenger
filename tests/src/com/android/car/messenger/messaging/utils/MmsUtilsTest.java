@@ -28,7 +28,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
-import android.provider.Telephony.Sms;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -48,6 +47,7 @@ import java.time.Instant;
 @RunWith(AndroidJUnit4.class)
 public class MmsUtilsTest {
 
+    private static final int MMS_CONTENT_TYPE = 1;
     private static final int ID_INDEX = 0;
     private static final int THREAD_ID_INDEX = 1;
     private static final int RECIPIENTS_INDEX = 2;
@@ -56,7 +56,10 @@ public class MmsUtilsTest {
     private static final int DATE_INDEX = 5;
     private static final int TYPE_INDEX = 6;
     private static final int READ_INDEX = 7;
-    private static final int CONTENT_TYPE_INDEX = 8;
+    private static final int SEEN_INDEX = 8;
+    private static final int CONTENT_TYPE_INDEX = 9;
+
+    private static final String CONTENT_TYPE = "ct_t";
 
     private Context mContext;
     @Mock
@@ -71,12 +74,13 @@ public class MmsUtilsTest {
         MockitoAnnotations.initMocks(this);
         mContext = ApplicationProvider.getApplicationContext();
 
-        when(mMockCursor.getColumnIndex(Sms._ID)).thenReturn(ID_INDEX);
-        when(mMockCursor.getColumnIndex(Sms.THREAD_ID)).thenReturn(THREAD_ID_INDEX);
+        when(mMockCursor.getColumnIndex(Mms._ID)).thenReturn(ID_INDEX);
+        when(mMockCursor.getColumnIndex(Mms.THREAD_ID)).thenReturn(THREAD_ID_INDEX);
         when(mMockCursor.getColumnIndex(Mms.MESSAGE_BOX)).thenReturn(TYPE_INDEX);
-        when(mMockCursor.getColumnIndex(Sms.SUBSCRIPTION_ID)).thenReturn(SUBSCRIPTION_ID_INDEX);
-        when(mMockCursor.getColumnIndex(Sms.DATE)).thenReturn(DATE_INDEX);
-        when(mMockCursor.getColumnIndex(Sms.READ)).thenReturn(READ_INDEX);
+        when(mMockCursor.getColumnIndex(Mms.SUBSCRIPTION_ID)).thenReturn(SUBSCRIPTION_ID_INDEX);
+        when(mMockCursor.getColumnIndex(Mms.DATE)).thenReturn(DATE_INDEX);
+        when(mMockCursor.getColumnIndex(Mms.READ)).thenReturn(READ_INDEX);
+        when(mMockCursor.getColumnIndex(Mms.SEEN)).thenReturn(SEEN_INDEX);
         when(mMockCursor.getColumnIndex(Telephony.BaseMmsColumns.CONTENT_TYPE))
                 .thenReturn(CONTENT_TYPE_INDEX);
     }
@@ -89,8 +93,9 @@ public class MmsUtilsTest {
         String body = "text";
         int subscriptionId = 0;
         int type = MessageType.MESSAGE_TYPE_SENT;
-        long timestamp = 123;
+        long timestampSeconds = 123;
         int read = 1;
+        int seen = 0;
 
         MockitoSession session = mockitoSession().strictness(Strictness.LENIENT)
                 .spyStatic(CursorUtils.class)
@@ -113,19 +118,23 @@ public class MmsUtilsTest {
             when(mMockBodyCursor.getString(BODY_INDEX)).thenReturn(body);
             when(mMockCursor.getInt(SUBSCRIPTION_ID_INDEX)).thenReturn(subscriptionId);
             when(mMockCursor.getInt(TYPE_INDEX)).thenReturn(type);
-            when(mMockCursor.getLong(DATE_INDEX)).thenReturn(timestamp);
+            when(mMockCursor.getLong(DATE_INDEX)).thenReturn(timestampSeconds);
             when(mMockCursor.getInt(READ_INDEX)).thenReturn(read);
+            when(mMockCursor.getInt(SEEN_INDEX)).thenReturn(seen);
 
             MmsSmsMessage message = MmsUtils.parseMms(mContext, mMockCursor);
 
-            assertThat(message.mId).isEqualTo(id);
-            assertThat(message.mThreadId).isEqualTo(threadId);
-            assertThat(message.mPhoneNumber).isEqualTo(phoneNumber);
-            assertThat(message.mBody).isEqualTo(body);
-            assertThat(message.mSubscriptionId).isEqualTo(subscriptionId);
-            assertThat(message.mType).isEqualTo(type);
-            assertThat(message.mDate).isEqualTo(Instant.ofEpochSecond(timestamp));
-            assertThat(message.mRead).isTrue();
+            assertThat(message.getId()).isEqualTo(id);
+            assertThat(message.getThreadId()).isEqualTo(threadId);
+            assertThat(message.getPhoneNumber()).isEqualTo(phoneNumber);
+            assertThat(message.getBody()).isEqualTo(body);
+            assertThat(message.getSubscriptionId()).isEqualTo(subscriptionId);
+            assertThat(message.getType()).isEqualTo(type);
+            assertThat(message.getDate()).isEqualTo(Instant.ofEpochSecond(timestampSeconds));
+            assertThat(message.getTimestamp()).isEqualTo(timestampSeconds * 1000);
+            assertThat(message.isRead()).isTrue();
+            assertThat(message.isSeen()).isFalse();
+            assertThat(message.getContentType()).isEqualTo(MMS_CONTENT_TYPE);
 
         } finally {
             session.finishMocking();
@@ -134,10 +143,10 @@ public class MmsUtilsTest {
 
     @Test
     public void testIsMms() {
-        when(mMockCursor.getString(CONTENT_TYPE_INDEX)).thenReturn(MmsUtils.MMS_CONTENT_TYPE);
+        when(mMockCursor.getColumnIndex(CONTENT_TYPE)).thenReturn(CONTENT_TYPE_INDEX);
         assertThat(MmsUtils.isMms(mMockCursor)).isTrue();
 
-        when(mMockCursor.getString(CONTENT_TYPE_INDEX)).thenReturn("");
+        when(mMockCursor.getColumnIndex(CONTENT_TYPE)).thenReturn(-1);
         assertThat(MmsUtils.isMms(mMockCursor)).isFalse();
     }
 }

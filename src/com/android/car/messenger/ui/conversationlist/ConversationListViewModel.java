@@ -26,11 +26,10 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
-import androidx.lifecycle.Observer;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.android.car.apps.common.log.L;
-import com.android.car.messenger.bluetooth.BluetoothStateLiveData;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
@@ -50,26 +49,28 @@ public class ConversationListViewModel extends AndroidViewModel {
 
     @Nullable private UserAccount mUserAccount;
     @Nullable private LiveData<List<UIConversationItem>> mUIConversationLogLiveData;
-    private LiveData<Integer> mBluetoothStateLiveData;
-    private Observer mBluetoothStateObserver;
 
     public ConversationListViewModel(@NonNull Application application) {
         super(application);
         mDataModel = AppFactory.get().getDataModel();
-        mBluetoothStateLiveData = new BluetoothStateLiveData(application.getApplicationContext());
-        mBluetoothStateObserver = o -> L.i(TAG, "BluetoothState changed");
-        mBluetoothStateLiveData.observeForever(mBluetoothStateObserver);
     }
 
-    public LiveData<Integer> getBluetoothStateLiveData() {
-        return mBluetoothStateLiveData;
+    /**
+     * Gets the live data for the currently selected device
+     */
+    @NonNull
+    public LiveData<UserAccount> getCurrentAccount() {
+        return mDataModel.getCurrentAccount();
     }
 
     /**
      * Gets an observable {@link UIConversationItem} list for the connected account
      */
     @NonNull
-    public LiveData<List<UIConversationItem>> getConversations(@NonNull UserAccount userAccount) {
+    public LiveData<List<UIConversationItem>> getConversations(@Nullable UserAccount userAccount) {
+        if (userAccount == null) {
+            return new MutableLiveData<>(null);
+        }
         if (mUserAccount != null
                 && mUserAccount.getId() == userAccount.getId()
                 && mUIConversationLogLiveData != null) {
@@ -83,27 +84,21 @@ public class ConversationListViewModel extends AndroidViewModel {
     private LiveData<List<UIConversationItem>> createUIConversationLog(
             @NonNull UserAccount userAccount) {
         MediatorLiveData<List<UIConversationItem>> mutableLiveData = new MediatorLiveData<>();
-        mutableLiveData.addSource(
-                subscribeToConversations(userAccount),
-                pair -> {
-                    CarUxRestrictions uxRestrictions = pair.first;
-                    Collection<Conversation> list = pair.second;
-                    List<UIConversationItem> data =
-                            list.stream()
-                                    .map(
-                                            conversation ->
-                                                    UIConversationItemConverter
-                                                            .convertToUIConversationItem(
-                                                                    conversation, uxRestrictions))
-                                    .collect(Collectors.toList());
-                    mutableLiveData.postValue(data);
-                });
+        mutableLiveData.addSource(subscribeToConversations(userAccount), pair -> {
+            CarUxRestrictions uxRestrictions = pair.first;
+            Collection<Conversation> list = pair.second;
+            List<UIConversationItem> data = list.stream()
+                    .map(conversation -> UIConversationItemConverter.convertToUIConversationItem(
+                            conversation, uxRestrictions))
+                    .collect(Collectors.toList());
+            mutableLiveData.postValue(data);
+        });
         return mutableLiveData;
     }
 
     private LiveData<Pair<CarUxRestrictions, Collection<Conversation>>> subscribeToConversations(
             @NonNull UserAccount userAccount) {
-        final LiveData<Collection<Conversation>> liveData =
+        final LiveData<List<Conversation>> liveData =
                 mDataModel.getConversations(userAccount);
         return Transformations.switchMap(
                 AppFactory.get().getCarStateListener().getUxrRestrictions(),

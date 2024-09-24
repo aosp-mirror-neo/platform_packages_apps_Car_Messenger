@@ -34,10 +34,11 @@ class SmsUtils {
      * Returns the parsed sms result as a {@link MmsSmsMessage}
      *
      * @throws IllegalArgumentException if desired columns are missing.
-     * @see CursorUtils#CONTENT_CONVERSATION_PROJECTION
+     * @see CursorUtils#CONTENT_SMS_PROJECTION
      */
     @NonNull
     static MmsSmsMessage parseSms(@NonNull Cursor cursor) {
+        int idIndex = cursor.getColumnIndex(_ID);
         int threadIdIndex = cursor.getColumnIndex(Sms.THREAD_ID);
         int recipientsIndex = cursor.getColumnIndex(Sms.ADDRESS);
         int bodyIndex = cursor.getColumnIndex(Sms.BODY);
@@ -45,16 +46,19 @@ class SmsUtils {
         int dateIndex = cursor.getColumnIndex(Sms.DATE);
         int typeIndex = cursor.getColumnIndex(Sms.TYPE);
         int readIndex = cursor.getColumnIndex(Sms.READ);
+        int seenIndex = cursor.getColumnIndex(Sms.SEEN);
 
-        MmsSmsMessage message = new MmsSmsMessage();
-        message.mThreadId = cursor.getInt(threadIdIndex);
-        message.mPhoneNumber = cursor.getString(recipientsIndex);
-        message.mBody = cursor.getString(bodyIndex);
-        message.mSubscriptionId = cursor.getInt(subscriptionIdIndex);
-        message.mType = cursor.getInt(typeIndex);
-        message.mDate = Instant.ofEpochMilli(cursor.getLong(dateIndex));
-        message.mRead = cursor.getInt(readIndex) == 1;
-        message.mId = cursor.getString(cursor.getColumnIndex(_ID));
-        return message;
+        return new MmsSmsMessage.Builder()
+                .setId(cursor.getString(idIndex))
+                .setThreadId(cursor.getInt(threadIdIndex))
+                .setType(cursor.getInt(typeIndex))
+                .setSubscriptionId(cursor.getInt(subscriptionIdIndex))
+                .setDate(Instant.ofEpochMilli(cursor.getLong(dateIndex)))
+                .setRead(cursor.getInt(readIndex) == 1)
+                .setSeen(cursor.getInt(seenIndex) == 1)
+                .setPhoneNumber(cursor.getString(recipientsIndex))
+                .setBody(cursor.getString(bodyIndex))
+                .setContentType(0)
+                .build();
     }
 }

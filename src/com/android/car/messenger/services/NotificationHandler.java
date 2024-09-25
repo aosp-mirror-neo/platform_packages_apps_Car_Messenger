@@ -23,10 +23,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.car.apps.common.log.L;
@@ -44,12 +42,6 @@ import java.util.Calendar;
 /** Useful notification handler for posting messages */
 public class NotificationHandler {
     private static final String TAG = "CM.NotificationHandler";
-
-    @NonNull
-    private static final String GROUP_TAP_TO_READ_NOTIFICATION =
-            "com.android.car.messenger.TAP_TO_READ";
-
-    private static final int TAP_TO_READ_SBN_ATTEMPT_LIMIT = 3;
 
     @VisibleForTesting
     static final String LAST_REPLY_TIMESTAMP = "LAST_REPLY_TIMESTAMP";
@@ -173,74 +165,6 @@ public class NotificationHandler {
                 /* requestCode= */ 0,
                 intent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
-     * Posts a notification in the foreground for Tap To Read
-     *
-     * <p>This is useful as legacy digital assistant implementations of Tap To Read require a {@link
-     * StatusBarNotification} in order to fulfill a tap to read request.
-     *
-     * <p>This notification is invisible to the user but accessible by digital assistants.
-     *
-     * @return the StatusBarNotification posted by the system for this notification, or null if not
-     *     found after a limited attempt at retrieval
-     */
-    @Nullable
-    public static StatusBarNotification postNotificationForLegacyTapToRead(
-            @NonNull Conversation tapToReadConversation) {
-        L.d(TAG, "Posting legacy notification: " + tapToReadConversation.getId());
-        Context context = AppFactory.get().getContext();
-        // cancel any other notifications within group.
-        // There should be only notification in group at a time.
-        cancelAllTapToReadNotifications(context);
-        // Post as a foreground service:
-        // Foreground notifications by system apps with low priority
-        // are hidden from user view, which is desired
-        Notification notification =
-                ConversationPayloadHandler.createNotificationFromConversation(
-                        context,
-                        MessengerService.APP_RUNNING_CHANNEL_ID,
-                        tapToReadConversation,
-                        context.getApplicationInfo().icon,
-                        GROUP_TAP_TO_READ_NOTIFICATION);
-        int id = (GROUP_TAP_TO_READ_NOTIFICATION + tapToReadConversation.getId()).hashCode();
-        NotificationManager notificationManager =
-                context.getSystemService(NotificationManager.class);
-        notificationManager.notify(id, notification);
-
-        // attempt to retrieve the status bar notification based on the notification
-        // limit attempts
-        int tries = 0;
-        StatusBarNotification sbn;
-        do {
-            sbn = findSBN(notificationManager, id);
-            tries++;
-        } while (sbn == null && tries < TAP_TO_READ_SBN_ATTEMPT_LIMIT);
-        return sbn;
-    }
-
-    /** Cancels all Tap To Read Notifications */
-    public static void cancelAllTapToReadNotifications(@NonNull Context context) {
-        L.d(TAG, "Cancelling all TTR notifications");
-        NotificationManager notificationManager =
-                context.getSystemService(NotificationManager.class);
-        for (StatusBarNotification sbn : notificationManager.getActiveNotifications()) {
-            if (GROUP_TAP_TO_READ_NOTIFICATION.equals(sbn.getNotification().getGroup())) {
-                notificationManager.cancel(sbn.getId());
-            }
-        }
-    }
-
-    /** Returns the {@link StatusBarNotification} with desired id, or null if none found */
-    private static StatusBarNotification findSBN(
-            @NonNull NotificationManager notificationManager, int id) {
-        for (StatusBarNotification sbn : notificationManager.getActiveNotifications()) {
-            if (sbn.getId() == id) {
-                return sbn;
-            }
-        }
-        return null;
     }
 
     /** Removes a notification based on a conversation */

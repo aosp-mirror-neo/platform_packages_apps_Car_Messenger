@@ -21,6 +21,7 @@ plugins {
 }
 
 android {
+    namespace "com.android.car.messenger"
     compileSdkVersion gradle.ext.aaosLatestSDK
 
     defaultConfig {

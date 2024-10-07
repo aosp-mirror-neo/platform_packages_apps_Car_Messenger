@@ -16,12 +16,12 @@
 
 plugins {
     id 'com.android.library'
+    id 'aaosApps.buildLogic'
     id 'buildSrc.jdk.jdk8'
 }
 
 android {
     namespace "com.android.car.messenger.testing"
-    compileSdkVersion gradle.ext.aaosLatestSDK
 
     defaultConfig {
         minSdkVersion 31

@@ -29,6 +29,7 @@ public class UserAccountLiveData extends MediatorLiveData<UserAccount> {
     private static UserAccountLiveData sInstance;
 
     private UserAccountLiveData() {
+        setValue(null);
         addSource(UserAccountListLiveData.getInstance(), v -> {
             UserAccount account = v.getAccounts().isEmpty() ? null : v.getAccounts().get(0);
             if (getValue() == account) {

@@ -156,8 +156,8 @@ public class CursorUtils {
 
     private static Uri getContentUri(ContentType contentType) {
         return contentType == ContentType.MMS
-                ? Telephony.Mms.Inbox.CONTENT_URI
-                : Telephony.Sms.Inbox.CONTENT_URI;
+                ? Telephony.Mms.CONTENT_URI
+                : Telephony.Sms.CONTENT_URI;
     }
 
     /** Gets the Uri for the message with specified messageId */

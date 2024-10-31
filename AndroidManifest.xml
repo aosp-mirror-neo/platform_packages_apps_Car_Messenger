@@ -20,7 +20,7 @@
 
     <uses-sdk
         android:minSdkVersion="31"
-        android:targetSdkVersion="31" />
+        android:targetSdkVersion="34" />
 
     <application
         android:name="com.android.car.messenger.CarMessengerApp"
@@ -103,6 +103,7 @@
 
         <service
             android:name=".services.MessengerService"
+            android:foregroundServiceType="remoteMessaging"
             android:exported="false"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
@@ -124,6 +125,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Permissions required to know the current projection app status. -->
     <uses-permission android:name="android.car.permission.ACCESS_CAR_PROJECTION_STATUS" />

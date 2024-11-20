@@ -17,16 +17,17 @@
 plugins {
     id 'com.android.application'
     id 'jacoco'
+    id 'aaosApps.buildLogic'
     id 'buildSrc.jdk.jdk8'
 }
 
 android {
-    compileSdkVersion gradle.ext.aaosLatestSDK
+    namespace "com.android.car.messenger"
 
     defaultConfig {
         applicationId "com.android.car.messenger"
         minSdkVersion 31
-        targetSdkVersion 33
+        targetSdkVersion 34
         testInstrumentationRunnerArguments clearPackageData: 'true', coverage: 'true'
         versionCode gradle.ext.getVersionCode()
         versionName gradle.ext.getVersionName()
@@ -37,18 +38,11 @@ android {
     }
 
     signingConfigs {
-        aaos {
-            storeFile file(gradle.ext.aaosCertPath)
+        unbundled {
+            storeFile file(gradle.ext.unbundledCertPath)
             storePassword 'carapps'
             keyAlias 'carapps'
             keyPassword 'carapps'
-        }
-
-        platform {
-            storeFile file(gradle.ext.platformCertPath)
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
         }
     }
 
@@ -62,21 +56,14 @@ android {
     productFlavors {
         prod {
             dimension 'devMode'
-            signingConfig signingConfigs.aaos
+            signingConfig signingConfigs.unbundled
         }
 
         fake {
             dimension 'devMode'
             versionNameSuffix '-fake'
             testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-            signingConfig signingConfigs.aaos
-        }
-
-        platform {
-            dimension 'devMode'
-            if (file(gradle.ext.platformCertPath).exists()) {
-                signingConfig signingConfigs.platform
-            }
+            signingConfig signingConfigs.unbundled
         }
     }
 

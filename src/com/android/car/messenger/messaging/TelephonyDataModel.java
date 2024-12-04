@@ -16,6 +16,8 @@
 
 package com.android.car.messenger.messaging;
 
+import static com.android.car.messenger.MessageConstants.ACTION_MESSAGE_DELIVERED;
+import static com.android.car.messenger.MessageConstants.ACTION_MESSAGE_SENT;
 import static com.android.car.messenger.MessageConstants.KEY_MUTED_CONVERSATIONS;
 
 import android.content.ContentValues;
@@ -40,6 +42,7 @@ import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.interfaces.DataModel;
 import com.android.car.messenger.messaging.utils.CursorUtils;
+import com.android.car.messenger.util.VoiceUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +51,11 @@ import java.util.Set;
 /** Queries the telephony data model to retrieve the SMS/MMS messages */
 public class TelephonyDataModel implements DataModel {
     private static final String TAG = "CM.TelephonyDataModel";
+    private Context mContext;
+
+    public TelephonyDataModel(Context context) {
+        mContext = context;
+    }
 
     @NonNull
     @Override
@@ -125,25 +133,28 @@ public class TelephonyDataModel implements DataModel {
         L.d(TAG, "Sending a message to subId: " + accountId + "convId: " + conversationId);
         String destination =
                 Uri.withAppendedPath(Telephony.Threads.CONTENT_URI, conversationId).toString();
-        SmsManager.getSmsManagerForSubscriptionId(accountId)
-                .sendTextMessage(
-                        destination,
-                        /* scAddress= */ null,
-                        message,
-                        /* sentIntent= */ null,
-                        /* deliveryIntent= */ null);
+        SmsManager smsManager = mContext.getSystemService(SmsManager.class)
+                .createForSubscriptionId(accountId);
+        smsManager.sendTextMessage(
+                destination,
+                /* scAddress= */ null,
+                message,
+                VoiceUtil.createBroadcastIntent(ACTION_MESSAGE_SENT, conversationId, accountId),
+                VoiceUtil.createBroadcastIntent(
+                        ACTION_MESSAGE_DELIVERED, conversationId, accountId));
     }
 
     @Override
     public void sendMessage(int accountId, @NonNull String phoneNumber, @NonNull String message) {
         L.d(TAG, "Sending a message via phone number with subId: " + accountId);
-        SmsManager.getSmsManagerForSubscriptionId(accountId)
-                .sendTextMessage(
-                        phoneNumber,
-                        /* scAddress= */ null,
-                        message,
-                        /* sentIntent= */ null,
-                        /* deliveryIntent= */ null);
+        SmsManager smsManager = mContext.getSystemService(SmsManager.class)
+                .createForSubscriptionId(accountId);
+        smsManager.sendTextMessage(
+                phoneNumber,
+                /* scAddress= */ null,
+                message,
+                VoiceUtil.createBroadcastIntent(ACTION_MESSAGE_SENT, null, accountId),
+                VoiceUtil.createBroadcastIntent(ACTION_MESSAGE_DELIVERED, null, accountId));
     }
 
     @Override

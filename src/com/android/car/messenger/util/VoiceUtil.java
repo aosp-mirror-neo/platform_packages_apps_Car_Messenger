@@ -53,6 +53,7 @@ import com.android.car.messenger.common.Conversation.ConversationAction;
 import com.android.car.messenger.common.Conversation.ConversationAction.ActionType;
 import com.android.car.messenger.interfaces.AppFactory;
 import com.android.car.messenger.messaging.utils.ConversationUtil;
+import com.android.car.messenger.services.MessageStatusReceiver;
 import com.android.car.messenger.services.MessengerService;
 
 import java.util.ArrayList;
@@ -213,6 +214,23 @@ public class VoiceUtil {
         return PendingIntent.getForegroundService(
                 context, requestCode, intent,
                 PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Returns a pending intent used for message delivery status.
+     * See {@link android.telephony.SmsManager#sendTextMessage}
+     */
+    public static PendingIntent createBroadcastIntent(
+            @NonNull String action, @Nullable String convId, int accountId) {
+        Context context = AppFactory.get().getContext();
+
+        Intent intent = new Intent(context, MessageStatusReceiver.class);
+        intent.setAction(action);
+        intent.putExtra(EXTRA_CONVERSATION_KEY, convId);
+        intent.putExtra(EXTRA_ACCOUNT_ID, accountId);
+
+        return PendingIntent.getBroadcast(
+                context, action.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     /** Sends a reply, meant to be used from a caller originating from voice input. */

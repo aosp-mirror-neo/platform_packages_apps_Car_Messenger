@@ -20,19 +20,21 @@ import static com.android.car.messenger.MessageConstants.ACTION_MESSAGE_SENT;
 import static com.android.car.messenger.MessageConstants.EXTRA_ACCOUNT_ID;
 import static com.android.car.messenger.MessageConstants.EXTRA_CONVERSATION_KEY;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.SmsManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.android.car.apps.common.log.L;
+import com.android.car.messenger.R;
 
 /**
  * Logs the delivery status of a sent text message from {@link SmsManager#sendTextMessage}.
- *
- * <p>ACTION_MESSAGE_SENT is received when a text message is sent with SmsManager.
+ * ACTION_MESSAGE_SENT is received when a text message is sent with SmsManager.
  * ACTION_MESSAGE_DELIVERED is received when a text message is successfully delivered to the
  * recipient. This intent is dependent on mobile carriers providing DeliveryReports.
  */
@@ -56,6 +58,10 @@ public class MessageStatusReceiver extends BroadcastReceiver {
                 String convId = intent.getStringExtra(EXTRA_CONVERSATION_KEY);
                 int accountId = intent.getIntExtra(EXTRA_ACCOUNT_ID, -1);
                 L.d(TAG, "Result %d for conv %s, account %d", resultCode, convId, accountId);
+                if (resultCode != Activity.RESULT_OK) {
+                    Toast.makeText(context, context.getText(R.string.send_failed),
+                                    Toast.LENGTH_SHORT).show();
+                }
                 break;
             case ACTION_MESSAGE_DELIVERED:
                 L.d(TAG, "Message delivered with result %d", resultCode);

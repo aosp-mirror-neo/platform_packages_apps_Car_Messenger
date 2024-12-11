@@ -24,6 +24,8 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"Πατήστε για εκφώνηση"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"Ρύθμιση ημερομηνίας και ώρας στο αυτοκίνητο"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"Βεβαιωθείτε ότι η ημερομηνία και η ώρα έχουν ρυθμιστεί σωστά στο αυτοκίνητο και στο τηλέφωνο. Μπορεί να προκύψει μη αναμενόμενη συμπεριφορά κατά την ανταλλαγή μηνυμάτων."</string>
+    <!-- no translation found for send_failed (7165916156392826563) -->
+    <skip />
     <string name="action_reply" msgid="8404237041838225390">"Απάντηση"</string>
     <string name="action_mute" msgid="7982388368125401058">"Σίγαση"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"Επισήμανση ως αναγνωσμένου"</string>

@@ -24,6 +24,8 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"મોટેથી વાંચવા માટે ટૅપ કરો"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"તમારી કારની તારીખ અને સમયનું સેટઅપ કરો"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"કૃપા કરીને ખાતરી કરો કે તમારી કાર અને ફોનની તારીખ અને સમય યોગ્ય રીતે સેટ કરેલો છે. કદાચ અનપેક્ષિત મેસેજિંગ વર્તણૂક જોવા મળી શકે છે."</string>
+    <!-- no translation found for send_failed (7165916156392826563) -->
+    <skip />
     <string name="action_reply" msgid="8404237041838225390">"જવાબ આપો"</string>
     <string name="action_mute" msgid="7982388368125401058">"મ્યૂટ કરો"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"વાંચેલાં તરીકે માર્ક કરો"</string>

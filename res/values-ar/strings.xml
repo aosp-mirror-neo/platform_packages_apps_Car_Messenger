@@ -24,6 +24,8 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"انقر للقراءة بصوت عالٍ."</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"ضبط التاريخ والوقت في سيارتك"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"يُرجى التأكّد من ضبط التاريخ والوقت بشكل صحيح في سيارتك وهاتفك. قد يحدث سلوك مراسلة غير متوقع."</string>
+    <!-- no translation found for send_failed (7165916156392826563) -->
+    <skip />
     <string name="action_reply" msgid="8404237041838225390">"رد"</string>
     <string name="action_mute" msgid="7982388368125401058">"كتم الصوت"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"وضع علامة \"مقروءة\""</string>

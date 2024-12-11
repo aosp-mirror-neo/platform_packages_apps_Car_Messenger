@@ -24,6 +24,8 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"ਉੱਚੀ ਅਵਾਜ਼ ਵਿੱਚ ਪੜ੍ਹਨ ਲਈ ਟੈਪ ਕਰੋ"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"ਆਪਣੀ ਕਾਰ ਦੀ ਤਾਰੀਖ ਅਤੇ ਸਮੇਂ ਦਾ ਸੈੱਟਅੱਪ ਕਰੋ"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"ਕਿਰਪਾ ਕਰਕੇ ਪੱਕਾ ਕਰੋ ਕਿ ਤੁਹਾਡੀ ਕਾਰ ਅਤੇ ਫ਼ੋਨ ਦੀ ਤਾਰੀਖ ਅਤੇ ਸਮਾਂ ਸਹੀ ਹਨ। ਸੁਨੇਹਾ ਸੇਵਾ ਵਿੱਚ ਅਚਾਨਕ ਗੜਬੜ ਆ ਸਕਦੀ ਹੈ।"</string>
+    <!-- no translation found for send_failed (7165916156392826563) -->
+    <skip />
     <string name="action_reply" msgid="8404237041838225390">"ਜਵਾਬ ਦਿਓ"</string>
     <string name="action_mute" msgid="7982388368125401058">"ਮਿਊਟ ਕਰੋ"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"ਪੜ੍ਹੇ ਵਜੋਂ ਨਿਸ਼ਾਨਦੇਹੀ ਕਰੋ"</string>

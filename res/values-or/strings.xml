@@ -24,8 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"ବଡ଼ ପାଟିରେ ପଢ଼ିବା ପାଇଁ ଟାପ କରନ୍ତୁ"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"ଆପଣଙ୍କ କାରର ତାରିଖ ଓ ସମୟ ସେଟଅପ କରନ୍ତୁ"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"ଆପଣଙ୍କ କାର ଏବଂ ଫୋନର ତାରିଖ ସମୟ ସଠିକ ଭାବେ ସେଟ କରାଯାଇଥିବା ଦୟାକରି ସୁନିଶ୍ଚିତ କରନ୍ତୁ। ଅପ୍ରତ୍ୟାଶିତ ମେସେଜିଂ ଆଚରଣ ହୋଇପାରେ।"</string>
-    <!-- no translation found for send_failed (7165916156392826563) -->
-    <skip />
+    <string name="send_failed" msgid="7165916156392826563">"ମେସେଜ ପଠାଇବାରେ ବିଫଳ ହୋଇଛି"</string>
     <string name="action_reply" msgid="8404237041838225390">"ପ୍ରତ୍ୟୁତ୍ତର ଦିଅନ୍ତୁ"</string>
     <string name="action_mute" msgid="7982388368125401058">"ମ୍ୟୁଟ କରନ୍ତୁ"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"ପଢ଼ାଯାଇଛି ଭାବେ ଚିହ୍ନଟ କରନ୍ତୁ"</string>

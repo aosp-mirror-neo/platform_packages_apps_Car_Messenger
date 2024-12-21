@@ -24,8 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"জোরে পড়তে ট্যাপ করুন"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"আপনার গাড়ির তারিখ ও সময় সেটআপ করা"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"আপনার গাড়ির এবং ফোনের তারিখ ও সময় সঠিকভাবে সেট করা হয়েছে কিনা দেখে নিন। এটি না করলে মেসেজ ব্যবহার করার সময় সমস্যা হতে পারে।"</string>
-    <!-- no translation found for send_failed (7165916156392826563) -->
-    <skip />
+    <string name="send_failed" msgid="7165916156392826563">"মেসেজ পাঠানো যায়নি"</string>
     <string name="action_reply" msgid="8404237041838225390">"উত্তর দিন"</string>
     <string name="action_mute" msgid="7982388368125401058">"মিউট"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"\'পড়া হয়েছে\' হিসেবে চিহ্নিত করুন"</string>

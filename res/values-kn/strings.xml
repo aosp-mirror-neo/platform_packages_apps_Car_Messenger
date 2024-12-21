@@ -24,8 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"ಜೋರಾಗಿ ಓದಲು ಟ್ಯಾಪ್ ಮಾಡಿ"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"ನಿಮ್ಮ ಕಾರ್‌ನ ದಿನಾಂಕ ಮತ್ತು ಸಮಯವನ್ನು ಸೆಟಪ್ ಮಾಡಿ"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"ನಿಮ್ಮ ಕಾರ್ ಮತ್ತು ಫೋನ್‌ನ ದಿನಾಂಕದ ಸಮಯವನ್ನು ಸರಿಯಾಗಿ ಸೆಟ್‌ ಮಾಡಲಾಗಿದೆಯೇ ಎಂಬುದನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ. ಅನಿರೀಕ್ಷಿತ ಸಂದೇಶ ಕಳುಹಿಸುವಿಕೆ ಸಂಭವಿಸಬಹುದು."</string>
-    <!-- no translation found for send_failed (7165916156392826563) -->
-    <skip />
+    <string name="send_failed" msgid="7165916156392826563">"ಸಂದೇಶವನ್ನು ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ"</string>
     <string name="action_reply" msgid="8404237041838225390">"ಪ್ರತ್ಯುತ್ತರಿಸಿ"</string>
     <string name="action_mute" msgid="7982388368125401058">"ಮ್ಯೂಟ್ ಮಾಡಿ"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"ಓದಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ"</string>

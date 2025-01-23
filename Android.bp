@@ -34,6 +34,9 @@ android_app {
 
     sdk_version: "system_current",
 
+    // b/355695111: Remove this once we drop support for sc-car
+    java_version: "1.8", // sc-car only supports up to java 8.
+
     required: ["allowed_privapp_com.android.car.messenger"],
 
     certificate: CERTIFICATE,

@@ -24,6 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"点按即可朗读"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"设置您汽车的日期和时间"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"请确保您汽车和手机的日期时间设置无误。可能会发生意外的消息收发行为。"</string>
+    <string name="send_failed" msgid="7165916156392826563">"消息发送失败"</string>
     <string name="action_reply" msgid="8404237041838225390">"回复"</string>
     <string name="action_mute" msgid="7982388368125401058">"忽略"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"标记为已读"</string>

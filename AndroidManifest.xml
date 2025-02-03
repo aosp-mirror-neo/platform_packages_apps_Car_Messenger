@@ -101,6 +101,15 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".services.MessageStatusReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="ACTION_MESSAGE_SENT" />
+                <action android:name="ACTION_MESSAGE_DELIVERED" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".services.MessengerService"
             android:foregroundServiceType="remoteMessaging"

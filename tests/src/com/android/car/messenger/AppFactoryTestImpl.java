@@ -58,7 +58,7 @@ public class AppFactoryTestImpl extends AppFactory {
         sRegistered = false;
         sInitialized = false;
         mContext = ApplicationProvider.getApplicationContext();
-        mDataModel = new TelephonyDataModel();
+        mDataModel = new TelephonyDataModel(mContext);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
     }
 

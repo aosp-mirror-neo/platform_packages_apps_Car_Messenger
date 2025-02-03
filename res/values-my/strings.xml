@@ -24,6 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"အသံထွက်ဖတ်ရန် တို့ပါ"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"သင့်ကား၏ ရက်စွဲနှင့်အချိန်ကို သတ်မှတ်ပါ"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"သင့်ကားနှင့် ဖုန်း၏ ရက်စွဲအချိန်ကို မှန်ကန်စွာသတ်မှတ်ထားကြောင်း သေချာပါစေ။ မျှော်လင့်မထားသော မက်ဆေ့ဂျ်ပေးပို့မှုများ ဖြစ်ပေါ်နိုင်သည်။"</string>
+    <string name="send_failed" msgid="7165916156392826563">"မက်ဆေ့ဂျ်ပို့၍ မရလိုက်ပါ"</string>
     <string name="action_reply" msgid="8404237041838225390">"စာပြန်ရန်"</string>
     <string name="action_mute" msgid="7982388368125401058">"အသံပိတ်ခြင်း"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"ဖတ်ပြီးဟု မှတ်သားခြင်း"</string>

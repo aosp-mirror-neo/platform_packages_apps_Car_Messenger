@@ -43,6 +43,8 @@
     <!-- Description of time desync error notification [CHAR LIMIT=180] -->
     <string name="time_desync_error_text">Please make sure your car and phone\'s datetime are set correctly. Unexpected messaging behavior may occur.</string>
 
+    <!-- Message indicating a message failed to be sent [CHAR LIMIT=50] -->
+    <string name="send_failed">Message failed to send</string>
 
     <!-- Notification action button strings -->
     <string name="action_reply">Reply</string>

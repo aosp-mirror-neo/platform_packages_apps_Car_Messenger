@@ -41,7 +41,6 @@ android_test {
         "androidx.test.espresso.intents",
         "androidx.test.ext.junit",
         "androidx.test.ext.truth",
-        "car-testing-common-prebuilt",
         "mockito-target-extended-minus-junit4",
         "truth",
     ],

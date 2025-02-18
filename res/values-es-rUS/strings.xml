@@ -24,6 +24,7 @@
     <string name="tap_to_read_aloud" msgid="7309530473789467365">"Presiona para leer en voz alta"</string>
     <string name="time_desync_error_title" msgid="7903285178550986965">"Establece la fecha y hora de tu vehículo"</string>
     <string name="time_desync_error_text" msgid="1537219557576885842">"Asegúrate de que la fecha y hora del teléfono y el vehículo sean correctas. Es posible que se produzcan comportamientos inesperados de mensajería."</string>
+    <string name="send_failed" msgid="7165916156392826563">"Se produjo un error al enviar el mensaje"</string>
     <string name="action_reply" msgid="8404237041838225390">"Responder"</string>
     <string name="action_mute" msgid="7982388368125401058">"Silenciar"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"Marcar como leído"</string>

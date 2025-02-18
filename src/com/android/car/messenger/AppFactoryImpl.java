@@ -46,7 +46,7 @@ class AppFactoryImpl extends AppFactory {
         // At this point Factory is published. Services can now get initialized and depend on
         // Factory.get().
         factory.mApplicationContext = application.getApplicationContext();
-        factory.mDataModel = new TelephonyDataModel();
+        factory.mDataModel = new TelephonyDataModel(application.getApplicationContext());
         factory.mSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(factory.mApplicationContext);
     }

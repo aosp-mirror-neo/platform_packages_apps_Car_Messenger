@@ -26,6 +26,7 @@ import com.android.car.apps.common.log.L;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.bluetooth.UserAccountListLiveData;
 import com.android.car.messenger.common.Conversation;
+import com.android.car.messenger.common.Conversation.Message.MessageType;
 import com.android.car.messenger.messaging.utils.ConversationFetchUtil;
 import com.android.car.messenger.messaging.utils.MessageUtils;
 import com.android.car.messenger.messaging.utils.MmsSmsMessage;
@@ -133,7 +134,7 @@ public class InMemoryConversationLog implements
                 convMap.put(convId, conv);
 
                 for (MmsSmsMessage rawMsg : rawMsgList) {
-                    if (!rawMsg.isSeen()) {
+                    if (!rawMsg.isSeen() && rawMsg.getType() == MessageType.MESSAGE_TYPE_INBOX) {
                         mUnseenConversationIndex.put(subId, rawMsg);
                         break;
                     }

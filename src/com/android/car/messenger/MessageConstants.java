@@ -16,8 +16,6 @@
 
 package com.android.car.messenger;
 
-import androidx.annotation.NonNull;
-
 /** Constants. */
 public final class MessageConstants {
 
@@ -29,24 +27,30 @@ public final class MessageConstants {
     /**
      * The key in Default Shared Preferences that maps to a list of conversation ids that are muted
      */
-    @NonNull public static final String KEY_MUTED_CONVERSATIONS = "KEY_MUTED_CONVERSATIONS";
+    public static final String KEY_MUTED_CONVERSATIONS = "KEY_MUTED_CONVERSATIONS";
 
     /** Used to reply to message. */
-    @NonNull public static final String ACTION_REPLY = "ACTION_REPLY";
+    public static final String ACTION_REPLY = "ACTION_REPLY";
 
     /** Used to mark a conversation as read */
-    @NonNull public static final String ACTION_MARK_AS_READ = "ACTION_MARK_AS_READ";
+    public static final String ACTION_MARK_AS_READ = "ACTION_MARK_AS_READ";
 
     /** Used to direct send to a specified phone number */
-    @NonNull public static final String ACTION_DIRECT_SEND = "ACTION_DIRECT_SEND";
+    public static final String ACTION_DIRECT_SEND = "ACTION_DIRECT_SEND";
 
     /** Used to mute a conversation */
-    @NonNull public static final String ACTION_MUTE = "ACTION_MUTE";
+    public static final String ACTION_MUTE = "ACTION_MUTE";
+
+    /** Used to receive success and failure results of sent messages */
+    public static final String ACTION_MESSAGE_SENT = "ACTION_MESSAGE_SENT";
+
+    /** Used to receive success and failure results of the delivery of a sent message */
+    public static final String ACTION_MESSAGE_DELIVERED = "ACTION_MESSAGE_DELIVERED";
 
     /* EXTRAS */
     /** Key under which the a Conversation Key is provided. */
-    @NonNull public static final String EXTRA_CONVERSATION_KEY = "EXTRA_CONVERSATION_KEY";
+    public static final String EXTRA_CONVERSATION_KEY = "EXTRA_CONVERSATION_KEY";
 
     /** Key under which the user account/device id is provided. */
-    @NonNull public static final String EXTRA_ACCOUNT_ID = "EXTRA_ACCOUNT_ID";
+    public static final String EXTRA_ACCOUNT_ID = "EXTRA_ACCOUNT_ID";
 }

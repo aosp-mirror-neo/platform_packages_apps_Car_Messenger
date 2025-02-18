@@ -66,7 +66,8 @@ public class AppFactoryImplTest {
 
     @Test
     public void testGetDataModel() {
-        TelephonyDataModel telephonyDataModel = new TelephonyDataModel();
+        Context context = ApplicationProvider.getApplicationContext();
+        TelephonyDataModel telephonyDataModel = new TelephonyDataModel(context);
         mAppFactory = new AppFactoryTestImpl(/* context= */ null,
                 telephonyDataModel, /* sharedPreferences= */ null, /* listener= */ null);
         assertThat(AppFactory.get().getDataModel()).isEqualTo(telephonyDataModel);

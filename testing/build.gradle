@@ -17,7 +17,6 @@
 plugins {
     id 'com.android.library'
     id 'aaosApps.buildLogic'
-    id 'buildSrc.jdk.jdk8'
 }
 
 android {
@@ -42,7 +41,7 @@ android {
 dependencies {
     def lifecycle_version = '2.2.0'
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
-    implementation 'com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1'
+    implementation libs.dexmaker.mockito.inline.extended
 
     implementation project(path: ':car-ui-lib')
     implementation project(path: ':car-messenger-common')

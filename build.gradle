@@ -108,15 +108,13 @@ android {
 dependencies {
     implementation files(gradle.ext.lib_car_system_stubs)
 
-    implementation "androidx.constraintlayout:constraintlayout:2.1.0"
+    implementation libs.androidx.constraintlayout
 
-    def lifecycle_version = "2.2.0"
-    implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
-    // Not available in 2.3+
-    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    implementation libs.androidx.lifecycle.common.java8
 
-    implementation "androidx.preference:preference:1.1.1"
-    implementation "androidx.annotation:annotation:1.0.1"
+
+    implementation libs.androidx.preference
+    implementation libs.androidx.annotation
 
     implementation project(':car-apps-common')
     implementation project(':car-assist-lib')
@@ -128,21 +126,21 @@ dependencies {
     fakeImplementation libs.dexmaker.mockito.inline.extended
     fakeImplementation project(path: ":car-messenger-app:testing")
 
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.5.0') {
+    androidTestImplementation(libs.androidx.espresso.core) {
         exclude group: 'org.checkerframework', module: 'checker'
     }
-    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.5.0') {
+    androidTestImplementation(libs.androidx.espresso.contrib) {
         exclude group: 'org.checkerframework', module: 'checker'
     }
-    androidTestImplementation('androidx.test.espresso:espresso-intents:3.5.0') {
+    androidTestImplementation(libs.androidx.espresso.intents) {
         exclude group: 'org.checkerframework', module: 'checker'
     }
-    androidTestImplementation 'org.hamcrest:hamcrest:2.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test:core:1.5.0'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'com.google.truth:truth:1.1.3'
+    androidTestImplementation libs.hamcrest
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.google.truth
     androidTestImplementation libs.dexmaker.mockito.inline.extended
     androidTestImplementation project(':car-testing-common')
 }

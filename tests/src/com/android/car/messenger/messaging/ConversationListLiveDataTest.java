@@ -30,6 +30,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.core.app.Person;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -42,7 +43,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
-import com.android.car.testing.common.InstantTaskExecutorRule;
 
 import org.junit.After;
 import org.junit.Before;

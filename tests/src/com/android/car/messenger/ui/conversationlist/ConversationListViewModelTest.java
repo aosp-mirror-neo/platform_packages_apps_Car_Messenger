@@ -24,6 +24,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.lifecycle.LiveData;
@@ -38,7 +39,6 @@ import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.TelephonyDataModel;
 import com.android.car.messenger.util.CarStateListener;
-import com.android.car.testing.common.InstantTaskExecutorRule;
 
 import org.junit.After;
 import org.junit.Before;

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.lifecycle.LiveData;
@@ -34,7 +35,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.bluetooth.UserAccount;
 import com.android.car.messenger.messaging.TelephonyDataModel;
-import com.android.car.testing.common.InstantTaskExecutorRule;
 
 import org.junit.After;
 import org.junit.Before;

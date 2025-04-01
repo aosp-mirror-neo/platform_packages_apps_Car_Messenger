@@ -143,4 +143,5 @@ dependencies {
     androidTestImplementation libs.google.truth
     androidTestImplementation libs.dexmaker.mockito.inline.extended
     androidTestImplementation project(':car-testing-common')
+    androidTestImplementation libs.androidx.arch.core.testing
 }

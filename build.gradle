@@ -28,8 +28,6 @@ android {
         minSdkVersion 31
         targetSdkVersion 34
         testInstrumentationRunnerArguments clearPackageData: 'true', coverage: 'true'
-        versionCode gradle.ext.getVersionCode()
-        versionName gradle.ext.getVersionName()
     }
 
     lintOptions {

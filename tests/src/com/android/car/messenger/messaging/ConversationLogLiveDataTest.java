@@ -30,6 +30,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
@@ -42,7 +43,6 @@ import com.android.car.messenger.AppFactoryTestImpl;
 import com.android.car.messenger.messaging.utils.ConversationFetchUtil;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 import com.android.car.messenger.messaging.utils.MmsSmsMessage;
-import com.android.car.testing.common.InstantTaskExecutorRule;
 
 import org.junit.After;
 import org.junit.Before;

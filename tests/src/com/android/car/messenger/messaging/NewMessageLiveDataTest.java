@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 
 import android.content.Context;
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.core.app.Person;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -45,7 +46,6 @@ import com.android.car.messenger.common.Conversation;
 import com.android.car.messenger.messaging.utils.CursorUtils;
 import com.android.car.messenger.messaging.utils.MmsSmsMessage;
 import com.android.car.messenger.util.CarStateListener;
-import com.android.car.testing.common.InstantTaskExecutorRule;
 
 import org.junit.After;
 import org.junit.Before;

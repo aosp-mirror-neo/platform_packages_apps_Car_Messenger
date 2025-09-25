@@ -19,6 +19,7 @@ limitations under the License.
         <item name="android:listDivider">@drawable/list_divider</item>
         <item name="android:buttonStyle">@style/Widget.Button</item>
         <item name="android:textDirection">locale</item>
+        <item name="oemTokenOverrideEnabled">true</item>
     </style>
 
     <style name="Theme.Messaging.BidiText" parent="Theme.Messaging">

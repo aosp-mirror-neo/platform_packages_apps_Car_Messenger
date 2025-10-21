@@ -29,6 +29,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Messaging">
 
+        <uses-library android:name="com.android.oem.tokens" android:required="false"/>
         <activity
             android:name=".ui.launcher.MessageLauncherActivity"
             android:exported="true"

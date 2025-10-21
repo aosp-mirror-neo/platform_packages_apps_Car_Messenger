@@ -114,6 +114,7 @@ dependencies {
     implementation libs.androidx.preference
     implementation libs.androidx.annotation
 
+    api project(':oem-token-lib')
     implementation project(':car-apps-common')
     implementation project(':car-assist-lib')
     implementation project(':car-messenger-common')
@@ -143,3 +144,6 @@ dependencies {
     androidTestImplementation project(':car-testing-common')
     androidTestImplementation libs.androidx.arch.core.testing
 }
+
+android.aaptOptions.additionalParameters "-I", "${projectDir}/../libs/car-ui-lib/oem-tokens/shared-lib/prebuilt/token-shared-lib.apk"
+

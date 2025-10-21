@@ -48,7 +48,10 @@ android_app {
 
     privileged: true,
 
-    libs: ["android.car-system-stubs"],
+    libs: [
+        "android.car-system-stubs",
+        "token-shared-lib",
+    ],
 
     // must be unbundled dependencies
     static_libs: [
@@ -63,6 +66,7 @@ android_app {
         "car-assist-lib-prebuilt",
         "car-messenger-common",
         "car-ui-lib-prebuilt",
+        "oem-token-lib",
     ],
 
     dex_preopt: {
@@ -95,7 +99,10 @@ android_test_helper_app {
 
     privileged: true,
 
-    libs: ["android.car-system-stubs"],
+    libs: [
+        "android.car-system-stubs",
+        "token-shared-lib",
+    ],
 
     manifest: "AndroidManifest.xml",
 
@@ -115,6 +122,7 @@ android_test_helper_app {
         "car-messenger-common",
         "car-messenger-testing",
         "car-ui-lib-prebuilt",
+        "oem-token-lib",
     ],
 
     dex_preopt: {

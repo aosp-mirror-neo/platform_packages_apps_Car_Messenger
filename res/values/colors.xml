@@ -34,7 +34,6 @@
     <color name="divider_color_light">#38FFFFFF</color>
     <color name="primary_icon_color">@color/icon_tint</color>
     <color name="letter_tile_default_color">#cccccc</color>
-    <color name="unread_color">#66B5FF</color>
 
     <color name="letter_tile_font_color">#ffffff</color>
 
@@ -42,7 +41,6 @@
 
     <color name="primary_text_color">#FFFFFFFF</color>
     <color name="secondary_text_color">#B8FFFFFF</color>
-    <color name="unread_text_color">#000000</color>
 
     <color name="car_card_ripple_background">#17000000</color>
 

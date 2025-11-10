@@ -21,6 +21,7 @@
     package="com.android.car.messenger">
 
     <application>
+        <uses-library android:name="com.android.oem.tokens" android:required="false"/>
         <!-- Disable the InitializationProvider to workaround the string not found exception in unit
          tests. -->
         <provider

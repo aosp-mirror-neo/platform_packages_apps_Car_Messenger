@@ -26,7 +26,7 @@
     <string name="time_desync_error_text" msgid="1537219557576885842">"لطفاً مطمئن شوید تاریخ و ساعت خودرو و تلفن به‌درستی تنظیم شده است. ممکن است رفتار غیرمنتظره‌ای هنگام پیام‌رسانی رخ دهد."</string>
     <string name="send_failed" msgid="7165916156392826563">"پیام ارسال نشد"</string>
     <string name="action_reply" msgid="8404237041838225390">"پاسخ دادن"</string>
-    <string name="action_mute" msgid="7982388368125401058">"بی‌صدا کردن"</string>
+    <string name="action_mute" msgid="7982388368125401058">"صامت کردن"</string>
     <string name="action_mark_as_read" msgid="2872221687403147551">"علامت‌گذاری به‌عنوان خوانده‌شده"</string>
     <string name="app_running_msg_notification_title" msgid="3569467829547340722">"سرویس پیام‌رسانی فعال است"</string>
     <string name="app_running_msg_notification_content" msgid="7088111523632559583">"دریافت «پیام‌نگار» در خودرو"</string>

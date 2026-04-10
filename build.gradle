@@ -85,11 +85,11 @@ android {
             signingConfig signingConfigs.platformAosp
         }
     }
-
-   buildTypes {
+  buildTypes {
         debug {
             testCoverageEnabled = true
             debuggable true
+            signingConfig android.buildTypes.release.signingConfig
         }
     }
 

@@ -39,8 +39,8 @@
     <string name="cd_icon_indicating_the_last_action" msgid="1823559093876712683">"Symbol „Untertiteltext“"</string>
     <string name="cd_mute_button" msgid="76118116050731771">"Button „Stummschalten“"</string>
     <string name="cd_loading_info_icon" msgid="600252242790937732">"Symbol „Informationen werden geladen“"</string>
-    <string name="cd_reply_action_button" msgid="3349155913058787730">"Aktionsschaltfläche „Antworten“"</string>
-    <string name="cd_play_action_button" msgid="2678681425367772215">"Aktionsschaltfläche „Wiedergabe“"</string>
+    <string name="cd_reply_action_button" msgid="3349155913058787730">"Aktionsbutton „Antworten“"</string>
+    <string name="cd_play_action_button" msgid="2678681425367772215">"Aktionsbutton „Wiedergabe“"</string>
     <string name="now_string_shortest" msgid="7873145874801426444">"jetzt"</string>
     <string name="participant_overflow_text" msgid="6834410359562565577">"und %d weitere"</string>
     <string name="duration_minutes_shortest" msgid="3196334009463125092">"{count,plural, =1{#m}other{#m}}"</string>

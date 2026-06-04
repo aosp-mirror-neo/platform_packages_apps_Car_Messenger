@@ -1,12 +1,5 @@
-# Default code reviewers picked from top 3 or more developers.
-# Please update this list if you find better candidates.
-pyli@google.com
-danzz@google.com
-
-# For Gradle-related and upload config changes
-per-file *.gradle, *.gradle.kts, PREUPLOAD.cfg = froeht@google.com
+jainams@google.com
 
 # For urgent reviews only
-dnek@google.com
-arnaudberry@google.com
+babakbo@google.com
 stenning@google.com
